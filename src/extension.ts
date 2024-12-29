@@ -2,6 +2,7 @@ import * as vscode from "vscode";
 import { OpenFnExtension } from "./OpenfnExtension";
 import { WorkflowManager } from "./managers/WorkflowManager";
 import { TreeViewProvider } from "./TreeViewProvider";
+import { StatusBarManager } from "./managers/StatusBarManager";
 
 // This method is called when your extension is activated
 export function activate(context: vscode.ExtensionContext) {
@@ -22,7 +23,8 @@ export function activate(context: vscode.ExtensionContext) {
   const treeviewProvider = new TreeViewProvider(
     () => workflowManager.workflowFiles
   );
-  new OpenFnExtension(workflowManager, treeviewProvider);
+  const statusBarManager = new StatusBarManager();
+  new OpenFnExtension(workflowManager, treeviewProvider, statusBarManager);
 }
 
 // This method is called when your extension is deactivated
