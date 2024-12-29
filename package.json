@@ -10,14 +10,16 @@
     "Other"
   ],
   "homepage": "https://github.com/OpenFn/vscode",
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/OpenFn/vscode"
-    },
-    "bugs": {
-        "url": "https://github.com/OpenFn/vscode/issues"
-    },
-  "activationEvents": [],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/OpenFn/vscode"
+  },
+  "bugs": {
+    "url": "https://github.com/OpenFn/vscode/issues"
+  },
+  "activationEvents": [
+    "workspaceContains:**/.openfnrc"
+  ],
   "main": "./out/extension.js",
   "contributes": {},
   "scripts": {
