@@ -21,7 +21,41 @@
     "workspaceContains:**/.openfnrc"
   ],
   "main": "./out/extension.js",
-  "contributes": {},
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "openfn",
+          "title": "OpenFn",
+          "icon": "resources/openfn-square.svg"
+        }
+      ]
+    },
+    "views": {
+      "openfn": [
+        {
+          "id": "openfn-workflows",
+          "name": "Workflows"
+        }
+      ]
+    },
+    "viewsWelcome": [
+      {
+        "view": "openfn-workflows",
+        "contents": "In order to use OpenFn extension features, you can open a folder containing a .openfnrc file or add one to this workspace.\n[Open Folder](command:vscode.openFolder)\n[Generate .openfnrc](command:openfn.openfnrc)"
+      }
+    ],
+    "commands": [
+      {
+        "command": "openfn.openfnrc",
+        "title": "Generate .openfnrc"
+      },
+      {
+        "command": "openfn-workflows.itemclicked",
+        "title": "OpenFn Workflows Item Clicked"
+      }
+    ]
+  },
   "scripts": {
     "vscode:prepublish": "pnpm run compile",
     "compile": "tsc -p ./",

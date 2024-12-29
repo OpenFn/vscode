@@ -130,4 +130,9 @@ export class WorkflowManager {
     this.workflowFiles = workflows;
     this.workflowsEmitter.fire(workflows);
   }
+
+  async openFile(path: vscode.Uri) {
+    const document = await vscode.workspace.openTextDocument(path);
+    await vscode.window.showTextDocument(document);
+  }
 }
