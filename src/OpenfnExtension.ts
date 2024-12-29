@@ -3,6 +3,7 @@ import * as vscode from "vscode";
 import { WorkflowManager } from "./managers/WorkflowManager";
 import { TreeviewItem, TreeViewProvider } from "./TreeViewProvider";
 import { StatusBarManager } from "./managers/StatusBarManager";
+import registerSemanticColoring from "./SemanticColoring";
 
 export class OpenFnExtension {
   treeview!: vscode.TreeView<TreeviewItem>;
@@ -43,6 +44,8 @@ export class OpenFnExtension {
         this.workflowManager.openFile(vscode.Uri.parse(item.filePath));
       }
     );
+
+    registerSemanticColoring(this.workflowManager.api);
   }
 
   private initTreeview() {

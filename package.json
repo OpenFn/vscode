@@ -54,7 +54,46 @@
         "command": "openfn-workflows.itemclicked",
         "title": "OpenFn Workflows Item Clicked"
       }
-    ]
+    ],
+    "languages": [
+      {
+        "id": "fn",
+        "aliases": [
+          "Fn",
+          "fn",
+          "OpenFn"
+        ],
+        "extensions": [
+          ".fn",
+          ".js",
+          ".ofn",
+          ".openfn"
+        ],
+        "icon": {
+          "light": "./resources/fn.svg",
+          "dark": "./resources/fn-dark.svg"
+        },
+        "configuration": "./syntaxes/language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "fn",
+        "scopeName": "source.fn",
+        "path": "./syntaxes/fn.tmLanguage.json"
+      }
+    ],
+    "configurationDefaults": {
+      "editor.semanticHighlighting.enabled": true,
+      "editor.semanticTokenColorCustomizations": {
+        "rules": {
+          "openfn.state": {
+            "foreground": "#b80000",
+            "fontStyle": "bold"
+          }
+        }
+      }
+    }
   },
   "scripts": {
     "vscode:prepublish": "pnpm run compile",

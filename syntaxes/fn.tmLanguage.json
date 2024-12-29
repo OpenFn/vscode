@@ -1,0 +1,13 @@
+{
+    "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+    "name": "OpenFn Language",
+    "fileTypes": [
+        "fn"
+    ],
+    "patterns": [
+        {
+            "include": "source.js"
+        }
+    ],
+    "scopeName": "source.fn"
+}
