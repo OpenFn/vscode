@@ -10,7 +10,7 @@ interface ActiveFileMeta {
   adaptor: string | undefined;
 }
 
-export class WorkflowManager {
+export class WorkflowManager implements vscode.Disposable {
   onAvailabilityChange: vscode.EventEmitter<boolean>["event"];
   private workflowsEmitter: vscode.EventEmitter<WorkflowData[]>;
   private activeFileEmitter: vscode.EventEmitter<ActiveFileMeta>;
@@ -18,9 +18,10 @@ export class WorkflowManager {
   onWorkflowChange: vscode.EventEmitter<WorkflowData[]>["event"];
   private watcher!: vscode.FileSystemWatcher;
   workflowFiles: WorkflowData[] = [];
+  private rcManager: OpenfnRcManager;
   constructor(public api: typeof vscode, private workspaceUri: vscode.Uri) {
-    const rcManager = new OpenfnRcManager(this.workspaceUri);
-    this.onAvailabilityChange = rcManager.onAvailabilityChange; // hook workspace availability change to .openfnrc manager
+    this.rcManager = new OpenfnRcManager(this.workspaceUri);
+    this.onAvailabilityChange = this.rcManager.onAvailabilityChange; // hook workspace availability change to .openfnrc manager
     this.watchWorkflows();
 
     this.workflowsEmitter = new this.api.EventEmitter();
@@ -134,5 +135,12 @@ export class WorkflowManager {
   async openFile(path: vscode.Uri) {
     const document = await vscode.workspace.openTextDocument(path);
     await vscode.window.showTextDocument(document);
+  }
+
+  dispose() {
+    if (this.activeFileEmitter) this.activeFileEmitter.dispose();
+    if (this.workflowsEmitter) this.workflowsEmitter.dispose();
+    if (this.watcher) this.watcher.dispose();
+    if (this.rcManager) this.rcManager.dispose();
   }
 }

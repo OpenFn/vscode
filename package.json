@@ -18,7 +18,7 @@
     "url": "https://github.com/OpenFn/vscode/issues"
   },
   "activationEvents": [
-    "workspaceContains:**/.openfnrc"
+    "onStartupFinished"
   ],
   "main": "./out/extension.js",
   "contributes": {

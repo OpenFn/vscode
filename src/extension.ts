@@ -24,7 +24,12 @@ export function activate(context: vscode.ExtensionContext) {
     () => workflowManager.workflowFiles
   );
   const statusBarManager = new StatusBarManager();
-  new OpenFnExtension(workflowManager, treeviewProvider, statusBarManager);
+  const openfnExtension = new OpenFnExtension(
+    workflowManager,
+    treeviewProvider,
+    statusBarManager
+  );
+  context.subscriptions.push(openfnExtension);
 }
 
 // This method is called when your extension is deactivated

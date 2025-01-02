@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 
-export class StatusBarManager {
+export class StatusBarManager implements vscode.Disposable {
   status!: vscode.StatusBarItem;
   constructor() {
     this.status = vscode.window.createStatusBarItem(
@@ -30,5 +30,9 @@ export class StatusBarManager {
   setAdaptor(adaptor: string) {
     this.status.text = `OpenFn: ${adaptor}`;
     this.status.tooltip = "OpenFn Workspace detected";
+  }
+
+  dispose() {
+    if (this.status) this.status.dispose();
   }
 }

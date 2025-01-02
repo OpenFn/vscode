@@ -5,9 +5,10 @@ import { TreeviewItem, TreeViewProvider } from "./TreeViewProvider";
 import { StatusBarManager } from "./managers/StatusBarManager";
 import registerSemanticColoring from "./SemanticColoring";
 
-export class OpenFnExtension {
+export class OpenFnExtension implements vscode.Disposable {
   treeview!: vscode.TreeView<TreeviewItem>;
   isOpenfnWorkspace: boolean = false;
+  semanticDisposable: vscode.Disposable;
   constructor(
     private workflowManager: WorkflowManager,
     private treeviewProvider: TreeViewProvider,
@@ -26,7 +27,7 @@ export class OpenFnExtension {
     });
 
     workflowManager.onActiveFileChange((activeFile) => {
-      if (activeFile.adaptor) {
+      if (activeFile.adaptor && this.isOpenfnWorkspace) {
         this.statusBarManager.setAdaptor(activeFile.adaptor);
       } else {
         if (this.isOpenfnWorkspace) this.statusBarManager.setActive();
@@ -45,7 +46,16 @@ export class OpenFnExtension {
       }
     );
 
-    registerSemanticColoring(this.workflowManager.api);
+    this.semanticDisposable = registerSemanticColoring(
+      this.workflowManager.api
+    );
+  }
+
+  dispose() {
+    if (this.workflowManager) this.workflowManager.dispose();
+    if (this.treeview) this.treeview.dispose();
+    if (this.statusBarManager) this.statusBarManager.dispose();
+    if (this.semanticDisposable) this.semanticDisposable.dispose();
   }
 
   private initTreeview() {

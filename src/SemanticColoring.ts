@@ -35,7 +35,7 @@ export default function registerSemanticColoring(api: typeof vscode) {
   };
 
   const selector = { language: "fn", scheme: "file" };
-  api.languages.registerDocumentSemanticTokensProvider(
+  return api.languages.registerDocumentSemanticTokensProvider(
     selector,
     provider,
     legend
