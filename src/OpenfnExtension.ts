@@ -1,9 +1,15 @@
 import * as vscode from "vscode";
+import * as path from "path";
 
 import { WorkflowManager } from "./managers/WorkflowManager";
 import { TreeviewItem, TreeViewProvider } from "./TreeViewProvider";
 import { StatusBarManager } from "./managers/StatusBarManager";
 import registerSemanticColoring from "./SemanticColoring";
+import { runWorkflow } from "./workflowRunner";
+
+interface PickItem extends vscode.QuickPickItem {
+  workflowPath: string;
+}
 
 export class OpenFnExtension implements vscode.Disposable {
   treeview!: vscode.TreeView<TreeviewItem>;
@@ -19,23 +25,28 @@ export class OpenFnExtension implements vscode.Disposable {
       this.isOpenfnWorkspace = active;
       if (!this.isOpenfnWorkspace) {
         this.treeview.dispose();
-        this.statusBarManager.setInactive();
+        this.statusBarManager.setStatusInactive();
+        this.statusBarManager.setRunWorkflowsInactive();
       } else {
         this.initTreeview();
-        this.statusBarManager.setActive();
+        this.statusBarManager.setStatusActive();
+        if (this.workflowManager.workflowFiles.length)
+          this.statusBarManager.setRunWorkflowsActive();
       }
     });
 
     workflowManager.onActiveFileChange((activeFile) => {
       if (activeFile.adaptor && this.isOpenfnWorkspace) {
-        this.statusBarManager.setAdaptor(activeFile.adaptor);
+        this.statusBarManager.setStatusAdaptor(activeFile.adaptor);
       } else {
-        if (this.isOpenfnWorkspace) this.statusBarManager.setActive();
-        else this.statusBarManager.setInactive();
+        if (this.isOpenfnWorkspace) this.statusBarManager.setStatusActive();
+        else this.statusBarManager.setStatusInactive();
       }
     });
 
-    this.workflowManager.onWorkflowChange(() => {
+    this.workflowManager.onWorkflowChange((files) => {
+      if (files.length) this.statusBarManager.setRunWorkflowsActive();
+      else this.statusBarManager.setRunWorkflowsInactive();
       this.treeviewProvider.refresh();
     });
 
@@ -43,6 +54,42 @@ export class OpenFnExtension implements vscode.Disposable {
       "openfn-workflows.itemclicked",
       async (item: TreeviewItem) => {
         this.workflowManager.openFile(vscode.Uri.parse(item.filePath));
+      }
+    );
+
+    this.workflowManager.api.commands.registerCommand(
+      "openfn.run-workflows",
+      async () => {
+        let workflowPath: string | undefined;
+        if (this.workflowManager.workflowFiles.length === 1) {
+          workflowPath = this.workflowManager.workflowFiles[0].filePath;
+        } else {
+          const result =
+            await this.workflowManager.api.window.showQuickPick<PickItem>(
+              this.workflowManager.workflowFiles.map((workflow) => ({
+                label: workflow.name || path.basename(workflow.filePath),
+                workflowPath: workflow.filePath,
+                detail: `${workflow.steps.length} step(s) • ${path.relative(
+                  this.workflowManager.workspaceUri.fsPath,
+                  workflow.filePath
+                )}`,
+                iconPath: this.workflowManager.api.Uri.parse(
+                  path.join(
+                    __filename,
+                    "..",
+                    "..",
+                    "resources",
+                    "openfn-square.svg"
+                  )
+                ),
+              })),
+              { placeHolder: "Select a workflow to execute" }
+            );
+          workflowPath = result?.workflowPath;
+        }
+        if (workflowPath) {
+          runWorkflow(workflowPath);
+        }
       }
     );
 

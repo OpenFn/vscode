@@ -2,16 +2,35 @@ import * as vscode from "vscode";
 
 export class StatusBarManager implements vscode.Disposable {
   status!: vscode.StatusBarItem;
+  runWorkflows!: vscode.StatusBarItem;
   constructor() {
     this.status = vscode.window.createStatusBarItem(
       vscode.StatusBarAlignment.Left,
-      1
+      2
     );
     this.status.show();
-    this.setInactive();
+    this.setStatusInactive();
+
+    this.runWorkflows = vscode.window.createStatusBarItem(
+      vscode.StatusBarAlignment.Left,
+      1
+    );
+    this.runWorkflows.command = "openfn.run-workflows";
   }
 
-  setActive() {
+  setRunWorkflowsActive() {
+    this.runWorkflows.show();
+    this.runWorkflows.text = "$(debug-start) Run Workflow(s)";
+    this.runWorkflows.tooltip = "Execute a workflow in this workspace";
+    this.runWorkflows.backgroundColor = new vscode.ThemeColor(
+      "statusBarItem.background"
+    );
+  }
+  setRunWorkflowsInactive() {
+    this.runWorkflows.hide();
+  }
+
+  setStatusActive() {
     this.status.text = "OpenFn: active";
     this.status.tooltip = "OpenFn Workspace detected";
     this.status.backgroundColor = new vscode.ThemeColor(
@@ -19,7 +38,7 @@ export class StatusBarManager implements vscode.Disposable {
     );
   }
 
-  setInactive() {
+  setStatusInactive() {
     this.status.text = "OpenFn: not active";
     this.status.tooltip = "OpenFn Workspace no detected";
     this.status.backgroundColor = new vscode.ThemeColor(
@@ -27,12 +46,13 @@ export class StatusBarManager implements vscode.Disposable {
     );
   }
 
-  setAdaptor(adaptor: string) {
+  setStatusAdaptor(adaptor: string) {
     this.status.text = `OpenFn: ${adaptor}`;
     this.status.tooltip = "OpenFn Workspace detected";
   }
 
   dispose() {
     if (this.status) this.status.dispose();
+    if (this.runWorkflows) this.runWorkflows.dispose();
   }
 }

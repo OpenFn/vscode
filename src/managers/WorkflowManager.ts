@@ -19,7 +19,7 @@ export class WorkflowManager implements vscode.Disposable {
   private watcher!: vscode.FileSystemWatcher;
   workflowFiles: WorkflowData[] = [];
   private rcManager: OpenfnRcManager;
-  constructor(public api: typeof vscode, private workspaceUri: vscode.Uri) {
+  constructor(public api: typeof vscode, public workspaceUri: vscode.Uri) {
     this.rcManager = new OpenfnRcManager(this.workspaceUri);
     this.onAvailabilityChange = this.rcManager.onAvailabilityChange; // hook workspace availability change to .openfnrc manager
     this.watchWorkflows();
