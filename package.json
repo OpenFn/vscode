@@ -53,8 +53,22 @@
       {
         "command": "openfn.run-workflows",
         "title": "OpenFn: Run Workflow(s)"
+      },
+      {
+        "command": "openfn.workflow.item.run",
+        "title": "Execute this workflow",
+        "icon": "$(debug-start)"
       }
     ],
+    "menus": {
+      "view/item/context": [
+        {
+          "command": "openfn.workflow.item.run",
+          "when": "viewItem == workflow.item",
+          "group": "inline"
+        }
+      ]
+    },
     "languages": [
       {
         "id": "fn",
