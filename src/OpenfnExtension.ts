@@ -26,12 +26,9 @@ export class OpenFnExtension implements vscode.Disposable {
       if (!this.isOpenfnWorkspace) {
         this.treeview.dispose();
         this.statusBarManager.setStatusInactive();
-        this.statusBarManager.setRunWorkflowsInactive();
       } else {
         this.initTreeview();
         this.statusBarManager.setStatusActive();
-        if (this.workflowManager.workflowFiles.length)
-          this.statusBarManager.setRunWorkflowsActive();
       }
     });
 
@@ -45,8 +42,6 @@ export class OpenFnExtension implements vscode.Disposable {
     });
 
     this.workflowManager.onWorkflowChange((files) => {
-      if (files.length) this.statusBarManager.setRunWorkflowsActive();
-      else this.statusBarManager.setRunWorkflowsInactive();
       this.treeviewProvider.refresh();
     });
 
