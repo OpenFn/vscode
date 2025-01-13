@@ -67,6 +67,7 @@ export class TreeviewItem extends vscode.TreeItem {
         "resources",
         "openfn-square.svg"
       );
+      this.contextValue = "workflow.item";
     } else {
       // is sub-item
       this.iconPath = vscode.Uri.parse(

@@ -88,6 +88,13 @@ export class OpenFnExtension implements vscode.Disposable {
       }
     );
 
+    this.workflowManager.api.commands.registerCommand(
+      "openfn.workflow.item.run",
+      (item: TreeviewItem) => {
+        runWorkflow(item.filePath);
+      }
+    );
+
     this.semanticDisposable = registerSemanticColoring(
       this.workflowManager.api
     );

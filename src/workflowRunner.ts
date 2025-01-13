@@ -2,8 +2,6 @@ import * as vscode from "vscode";
 
 import { execute } from "./utils/execute";
 
-let isOpenFnCLIAvailable: boolean | undefined = undefined;
-
 function runTerminal(name: string, command: string) {
   const terminal =
     vscode.window.terminals.find((t) => t.name === name) ||
@@ -15,15 +13,12 @@ function runTerminal(name: string, command: string) {
 }
 
 function isOpenfnCLIAvailable() {
-  if (isOpenFnCLIAvailable !== undefined) return isOpenFnCLIAvailable;
   return new Promise<boolean>((resolve) => {
     execute("openfn --version")
       .then(() => {
-        isOpenFnCLIAvailable = true;
         resolve(true);
       })
       .catch(() => {
-        isOpenFnCLIAvailable = false;
         resolve(false);
       });
   });
