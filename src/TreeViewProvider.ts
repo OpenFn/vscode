@@ -25,7 +25,7 @@ export class TreeViewProvider implements vscode.TreeDataProvider<TreeviewItem> {
         this.getWorkflowFiles().map(
           (file) =>
             new TreeviewItem(
-              path.basename(file.filePath),
+              file.name || path.basename(file.filePath),
               file.filePath,
               vscode.TreeItemCollapsibleState.Collapsed,
               file.steps
