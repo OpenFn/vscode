@@ -59,9 +59,8 @@
       {
         "id": "fn",
         "aliases": [
-          "Fn",
-          "fn",
-          "OpenFn"
+          "OpenFn",
+          "Fn"
         ],
         "extensions": [
           ".fn",
