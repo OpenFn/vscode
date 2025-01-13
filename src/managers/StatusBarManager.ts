@@ -9,6 +9,7 @@ export class StatusBarManager implements vscode.Disposable {
     );
     this.status.show();
     this.setStatusInactive();
+    this.status.command = "openfn.run-workflows";
   }
 
   setStatusActive() {
