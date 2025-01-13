@@ -72,11 +72,11 @@ export class TreeviewItem extends vscode.TreeItem {
       this.iconPath = vscode.Uri.parse(
         `https://app.openfn.org/images/adaptors/${adaptor_name}-square.png`
       );
-      this.command = {
-        command: "openfn-workflows.itemclicked",
-        title: "OpenFn Workflows ItemClicked",
-        arguments: [this],
-      };
     }
+    this.command = {
+      command: "openfn-workflows.itemclicked",
+      title: "OpenFn Workflows ItemClicked",
+      arguments: [this],
+    };
   }
 }
