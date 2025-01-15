@@ -53,7 +53,7 @@ export async function runWorkflow(
   } else {
     runTerminal(
       "Running workflow",
-      `openfnx ${workflowInfo.path} -o ${outputPath}`
+      `openfn ${workflowInfo.path} -o ${outputPath}`
     );
   }
 }
