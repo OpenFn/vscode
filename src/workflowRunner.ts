@@ -1,6 +1,9 @@
 import * as vscode from "vscode";
+import * as path from "path";
 
 import { execute } from "./utils/execute";
+import cleanupFilename from "./utils/cleanupFilename";
+import generateTimestamp from "./utils/generateTimestamp";
 
 function runTerminal(name: string, command: string) {
   const terminal =
@@ -25,7 +28,20 @@ function isOpenfnCLIAvailable() {
 }
 
 const INSTALL_CLI = "Click to Install";
-export async function runWorkflow(workflowPath: string) {
+export async function runWorkflow(
+  workflowInfo: {
+    path: string;
+    name?: string;
+  },
+  workspaceUri: vscode.Uri
+) {
+  // compute output path here!
+  const outputPath = path.join(
+    workspaceUri.fsPath,
+    `./tmp/output/${generateTimestamp()}-${cleanupFilename(
+      workflowInfo.name || "no-name"
+    )}-output.json`
+  );
   const isAvailable = await isOpenfnCLIAvailable();
   if (!isAvailable) {
     const pick = await vscode.window.showWarningMessage(
@@ -35,6 +51,9 @@ export async function runWorkflow(workflowPath: string) {
     if (pick === INSTALL_CLI)
       runTerminal("Installing OpenFn CLI", "npm install @openfn/cli -g");
   } else {
-    runTerminal("Running workflow", `openfn ${workflowPath}`);
+    runTerminal(
+      "Running workflow",
+      `openfnx ${workflowInfo.path} -o ${outputPath}`
+    );
   }
 }

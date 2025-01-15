@@ -55,19 +55,19 @@ export class OpenFnExtension implements vscode.Disposable {
     this.workflowManager.api.commands.registerCommand(
       "openfn.run-workflows",
       async () => {
-        let workflowPath: string | undefined;
+        let workflowInfo: { path: string; name?: string } | undefined;
         if (this.workflowManager.workflowFiles.length === 1) {
-          workflowPath = this.workflowManager.workflowFiles[0].filePath;
+          workflowInfo = {
+            path: this.workflowManager.workflowFiles[0].filePath,
+            name: this.workflowManager.workflowFiles[0].name,
+          };
         } else {
           const result =
             await this.workflowManager.api.window.showQuickPick<PickItem>(
               this.workflowManager.workflowFiles.map((workflow) => ({
                 label: workflow.name || path.basename(workflow.filePath),
                 workflowPath: workflow.filePath,
-                detail: `${workflow.steps.length} step(s) • ${path.relative(
-                  this.workflowManager.workspaceUri.fsPath,
-                  workflow.filePath
-                )}`,
+                detail: `${workflow.steps.length} step(s)`,
                 iconPath: this.workflowManager.api.Uri.parse(
                   path.join(
                     __filename,
@@ -80,10 +80,11 @@ export class OpenFnExtension implements vscode.Disposable {
               })),
               { placeHolder: "Select a workflow to execute" }
             );
-          workflowPath = result?.workflowPath;
+          if (result)
+            workflowInfo = { path: result.workflowPath, name: result.label };
         }
-        if (workflowPath) {
-          runWorkflow(workflowPath);
+        if (workflowInfo) {
+          runWorkflow(workflowInfo, workflowManager.workspaceUri);
         }
       }
     );
@@ -91,7 +92,10 @@ export class OpenFnExtension implements vscode.Disposable {
     this.workflowManager.api.commands.registerCommand(
       "openfn.workflow.item.run",
       (item: TreeviewItem) => {
-        runWorkflow(item.filePath);
+        runWorkflow(
+          { path: item.filePath, name: item.label },
+          workflowManager.workspaceUri
+        );
       }
     );
 
