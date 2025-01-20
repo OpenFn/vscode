@@ -1,5 +1,6 @@
 import * as vscode from "vscode";
 import * as path from "path";
+import * as fs from "fs";
 
 import { execute } from "./utils/execute";
 import cleanupFilename from "./utils/cleanupFilename";
@@ -51,6 +52,8 @@ export async function runWorkflow(
     if (pick === INSTALL_CLI)
       runTerminal("Installing OpenFn CLI", "npm install @openfn/cli -g");
   } else {
+    const dirPath = path.dirname(outputPath);
+    fs.mkdirSync(dirPath, { recursive: true });
     runTerminal(
       "Running workflow",
       `openfn ${workflowInfo.path} -o ${outputPath}`
