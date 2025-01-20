@@ -55,6 +55,12 @@ export class OpenFnExtension implements vscode.Disposable {
     this.workflowManager.api.commands.registerCommand(
       "openfn.run-workflows",
       async () => {
+        if (this.workflowManager.workflowFiles.length === 0) {
+          this.workflowManager.api.window.showWarningMessage(
+            "No workflow found the the workspace for execution"
+          );
+          return;
+        }
         let workflowInfo: { path: string; name?: string } | undefined;
         if (this.workflowManager.workflowFiles.length === 1) {
           workflowInfo = {
