@@ -96,7 +96,7 @@ export class WorkflowManager implements vscode.Disposable {
   private async updateWorkflowFiles() {
     const workflowUris = await this.api.workspace.findFiles(
       "**/*workflow*.json", // consider yml soon!
-      "**/node_modules/**"
+      "{**/node_modules/**,**/tmp/**}"
     );
 
     const res = await Promise.all(
@@ -112,7 +112,7 @@ export class WorkflowManager implements vscode.Disposable {
 
     const workflows: WorkflowData[] = [];
     for (const w of res) {
-      if (!w.success) {
+      if (!w.success || !w.result.workflow) {
         // shout about parse error in a file
         continue;
       }
