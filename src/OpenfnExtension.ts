@@ -6,6 +6,7 @@ import { TreeviewItem, TreeViewProvider } from "./TreeViewProvider";
 import { StatusBarManager } from "./managers/StatusBarManager";
 import registerSemanticColoring from "./SemanticColoring";
 import { runWorkflow } from "./workflowRunner";
+import { CompletionManager } from "./managers/CompletionManager";
 
 interface PickItem extends vscode.QuickPickItem {
   workflowPath: string;
@@ -18,7 +19,8 @@ export class OpenFnExtension implements vscode.Disposable {
   constructor(
     private workflowManager: WorkflowManager,
     private treeviewProvider: TreeViewProvider,
-    private statusBarManager: StatusBarManager
+    private statusBarManager: StatusBarManager,
+    private completionManager: CompletionManager
   ) {
     this.initTreeview();
     workflowManager.onAvailabilityChange((active) => {
@@ -34,7 +36,12 @@ export class OpenFnExtension implements vscode.Disposable {
 
     workflowManager.onActiveFileChange((activeFile) => {
       if (activeFile.adaptor && this.isOpenfnWorkspace) {
+        // show adaptor version in status bar
         this.statusBarManager.setStatusAdaptor(activeFile.adaptor);
+
+        // deal with completion stuff
+        if (activeFile.isJob)
+          this.completionManager.registerCompletions(activeFile.adaptor);
       } else {
         if (this.isOpenfnWorkspace) this.statusBarManager.setStatusActive();
         else this.statusBarManager.setStatusInactive();

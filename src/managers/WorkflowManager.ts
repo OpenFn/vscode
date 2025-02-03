@@ -1,8 +1,8 @@
-import * as vscode from "vscode";
 import * as path from "path";
-import { OpenfnRcManager } from "./OpenfnRcManager";
-import parseJson from "../utils/parseJson";
+import * as vscode from "vscode";
 import { WorkflowData, WorkflowJson } from "../types";
+import parseJson from "../utils/parseJson";
+import { OpenfnRcManager } from "./OpenfnRcManager";
 
 interface ActiveFileMeta {
   isJob: boolean;
