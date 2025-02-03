@@ -40,8 +40,10 @@ export class OpenFnExtension implements vscode.Disposable {
         this.statusBarManager.setStatusAdaptor(activeFile.adaptor);
 
         // deal with completion stuff
-        if (activeFile.isJob)
+        if (activeFile.isJob) {
           this.completionManager.registerCompletions(activeFile.adaptor);
+          this.completionManager.registerHoverSupport(activeFile.adaptor);
+        }
       } else {
         if (this.isOpenfnWorkspace) this.statusBarManager.setStatusActive();
         else this.statusBarManager.setStatusInactive();
