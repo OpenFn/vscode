@@ -7,7 +7,6 @@ export default function generateSignature(ast: AdaptorAst, word: string) {
     const item = all[i];
     if (item.name === word) {
       const params = item.docs.tags.filter((t) => t.title === "param");
-      console.log(params);
       const signatureHelp = new vscode.SignatureHelp();
       const signature = new vscode.SignatureInformation(
         `${item.name}(${params
