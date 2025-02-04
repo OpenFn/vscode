@@ -10,6 +10,8 @@ import { CompletionManager } from "./managers/CompletionManager";
 import { SourceManager } from "./managers/SourceManager";
 import { debounce } from "./utils/debounce";
 
+const supportedExtension = [".fn", ".js", ".ofn", ".openfn"];
+
 interface PickItem extends vscode.QuickPickItem {
   workflowPath: string;
 }
@@ -18,6 +20,7 @@ export class OpenFnExtension implements vscode.Disposable {
   treeview!: vscode.TreeView<TreeviewItem>;
   isOpenfnWorkspace: boolean = false;
   semanticDisposable: vscode.Disposable;
+  contentChange: vscode.Disposable | undefined;
   constructor(
     private workflowManager: WorkflowManager,
     private treeviewProvider: TreeViewProvider,
@@ -38,6 +41,7 @@ export class OpenFnExtension implements vscode.Disposable {
     });
 
     workflowManager.onActiveFileChange((activeFile) => {
+      if (this.contentChange) this.contentChange.dispose();
       if (activeFile.adaptor && this.isOpenfnWorkspace) {
         // show adaptor version in status bar
         this.statusBarManager.setStatusAdaptor(activeFile.adaptor);
@@ -54,14 +58,28 @@ export class OpenFnExtension implements vscode.Disposable {
         if (this.isOpenfnWorkspace) this.statusBarManager.setStatusActive();
         else this.statusBarManager.setStatusInactive();
       }
-    });
 
-    const debouncedSourceUpdate = debounce(
-      sourceManager.updateSource.bind(sourceManager),
-      1000 // 1 second debounce. generally people type quite slow :(
-    );
-    this.workflowManager.api.workspace.onDidChangeTextDocument((ev) => {
-      debouncedSourceUpdate(ev.document, ev.document.uri);
+      // only register for content updates when we're in a supported file!
+      if (
+        !supportedExtension.includes(
+          path.extname(activeFile.document.uri.fsPath)
+        )
+      )
+        return;
+
+      // first call source manager on content before waiting for updates
+      this.sourceManager.updateSource(
+        activeFile.document,
+        activeFile.document.uri
+      );
+      const debouncedSourceUpdate = debounce(
+        this.sourceManager.updateSource.bind(this.sourceManager),
+        1000 // 1 second debounce. generally people type quite slow :(
+      );
+      this.contentChange =
+        this.workflowManager.api.workspace.onDidChangeTextDocument((ev) => {
+          debouncedSourceUpdate(ev.document, ev.document.uri);
+        });
     });
 
     this.workflowManager.onWorkflowChange((files) => {
@@ -138,7 +156,8 @@ export class OpenFnExtension implements vscode.Disposable {
     if (this.treeview) this.treeview.dispose();
     if (this.statusBarManager) this.statusBarManager.dispose();
     if (this.semanticDisposable) this.semanticDisposable.dispose();
-    if (this.completionManager) this.dispose();
+    if (this.completionManager) this.completionManager.dispose();
+    if (this.contentChange) this.contentChange.dispose();
   }
 
   private initTreeview() {
