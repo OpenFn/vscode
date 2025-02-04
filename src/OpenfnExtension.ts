@@ -127,6 +127,7 @@ export class OpenFnExtension implements vscode.Disposable {
     if (this.treeview) this.treeview.dispose();
     if (this.statusBarManager) this.statusBarManager.dispose();
     if (this.semanticDisposable) this.semanticDisposable.dispose();
+    if (this.completionManager) this.dispose();
   }
 
   private initTreeview() {

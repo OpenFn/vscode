@@ -72,5 +72,7 @@ export class CompletionManager implements vscode.Disposable {
 
   dispose() {
     if (this.completion) this.completion.dispose();
+    if (this.hover) this.hover.dispose();
+    if (this.signature) this.signature.dispose();
   }
 }
