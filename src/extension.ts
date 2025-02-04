@@ -4,6 +4,7 @@ import { WorkflowManager } from "./managers/WorkflowManager";
 import { TreeViewProvider } from "./TreeViewProvider";
 import { StatusBarManager } from "./managers/StatusBarManager";
 import { CompletionManager } from "./managers/CompletionManager";
+import { SourceManager } from "./managers/SourceManager";
 
 // This method is called when your extension is activated
 export function activate(context: vscode.ExtensionContext) {
@@ -26,11 +27,13 @@ export function activate(context: vscode.ExtensionContext) {
   );
   const statusBarManager = new StatusBarManager();
   const completionManager = new CompletionManager();
+  const sourceManager = new SourceManager();
   const openfnExtension = new OpenFnExtension(
     workflowManager,
     treeviewProvider,
     statusBarManager,
-    completionManager
+    completionManager,
+    sourceManager
   );
   context.subscriptions.push(openfnExtension);
 }

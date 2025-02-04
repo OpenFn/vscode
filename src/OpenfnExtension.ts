@@ -7,6 +7,8 @@ import { StatusBarManager } from "./managers/StatusBarManager";
 import registerSemanticColoring from "./SemanticColoring";
 import { runWorkflow } from "./workflowRunner";
 import { CompletionManager } from "./managers/CompletionManager";
+import { SourceManager } from "./managers/SourceManager";
+import { debounce } from "./utils/debounce";
 
 interface PickItem extends vscode.QuickPickItem {
   workflowPath: string;
@@ -20,7 +22,8 @@ export class OpenFnExtension implements vscode.Disposable {
     private workflowManager: WorkflowManager,
     private treeviewProvider: TreeViewProvider,
     private statusBarManager: StatusBarManager,
-    private completionManager: CompletionManager
+    private completionManager: CompletionManager,
+    private sourceManager: SourceManager
   ) {
     this.initTreeview();
     workflowManager.onAvailabilityChange((active) => {
@@ -51,6 +54,14 @@ export class OpenFnExtension implements vscode.Disposable {
         if (this.isOpenfnWorkspace) this.statusBarManager.setStatusActive();
         else this.statusBarManager.setStatusInactive();
       }
+    });
+
+    const debouncedSourceUpdate = debounce(
+      sourceManager.updateSource.bind(sourceManager),
+      1000 // 1 second debounce. generally people type quite slow :(
+    );
+    this.workflowManager.api.workspace.onDidChangeTextDocument((ev) => {
+      debouncedSourceUpdate(ev.document, ev.document.uri);
     });
 
     this.workflowManager.onWorkflowChange((files) => {
