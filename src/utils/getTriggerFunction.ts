@@ -11,14 +11,16 @@ function bracketTrigger(word: string, pos: number) {
   return { content: word.substring(px + 1, pos + 1), commas: 0 };
 }
 
+const openbr = ["(", "[", "{"];
+const closebr = [")", "]", "}"];
 function commaTrigger(word: string, pos: number) {
   let px = pos;
   let br = 0;
   let commas = 0;
   while (br !== 1 && px >= 0) {
-    if (word[px] === "(") br++;
-    else if (word[px] === ")") br--;
-    else if (word[px] === ",") commas++;
+    if (openbr.includes(word[px])) br++;
+    else if (closebr.includes(word[px])) br--;
+    else if (word[px] === "," && br === 0) commas++;
     px--;
   }
   const content =
