@@ -3,6 +3,7 @@ import downloadAst from "../utils/downloadAst";
 import generateCompletionItems from "../utils/generateCompletionItems";
 import generateHoverItem from "../utils/generateHoverInformations";
 import generateSignature from "../utils/generateSignature";
+import { getTriggerFunction } from "../utils/getTriggerFunction";
 
 export class CompletionManager implements vscode.Disposable {
   completion: vscode.Disposable | undefined;
@@ -56,10 +57,12 @@ export class CompletionManager implements vscode.Disposable {
       },
       {
         provideSignatureHelp(document, position, token, context) {
-          const range = document.getWordRangeAtPosition(position);
-          const word = document.getText(range);
-          const m = word.match(/^([a-zA-Z_]\w*)\(/); // TODO match nested function calls
-          if (m && m[1]) return generateSignature(ast, m[1]);
+          const lineContent = document.lineAt(position.line).text;
+          const pos = position.character - 1;
+          const resp = getTriggerFunction(lineContent, pos); // pos should be on the trigger char
+
+          const m = resp.content.match(/^([a-zA-Z_]\w*)\(?/); // TODO match nested function calls
+          if (m && m[1]) return generateSignature(ast, m[1], resp.commas);
           return null;
         },
       },

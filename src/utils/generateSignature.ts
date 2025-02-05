@@ -1,7 +1,11 @@
 import { AdaptorAst } from "./downloadAst";
 import * as vscode from "vscode";
 
-export default function generateSignature(ast: AdaptorAst, word: string) {
+export default function generateSignature(
+  ast: AdaptorAst,
+  word: string,
+  paramNum: number
+) {
   const all = ast.common.concat(ast.operations);
   for (let i = 0; i < all.length; i++) {
     const item = all[i];
@@ -23,9 +27,14 @@ export default function generateSignature(ast: AdaptorAst, word: string) {
           )
       );
 
+      // diagnostics
+      if(paramNum > params.length){
+        // report that unexpected length
+      }
+
       signatureHelp.signatures = [signature];
       signatureHelp.activeSignature = 0; //TODO: update with several definitions
-      signature.activeParameter = 0; //TODO: when compiler is here. update active param
+      signature.activeParameter = paramNum; //TODO: when compiler is here. update active param
       return signatureHelp;
     }
   }
