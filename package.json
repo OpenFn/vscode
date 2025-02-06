@@ -78,6 +78,7 @@
         ],
         "extensions": [
           ".fn",
+          ".js",
           ".ofn",
           ".openfn"
         ],
@@ -125,5 +126,10 @@
     "@vscode/test-electron": "^2.3.9",
     "eslint": "^8.57.0",
     "typescript": "^5.3.3"
+  },
+  "dependencies": {
+    "acorn": "^8.14.0",
+    "ast-types": "^0.16.1",
+    "recast": "^0.23.9"
   }
 }

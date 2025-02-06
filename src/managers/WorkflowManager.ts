@@ -1,8 +1,8 @@
-import * as vscode from "vscode";
 import * as path from "path";
-import { OpenfnRcManager } from "./OpenfnRcManager";
-import parseJson from "../utils/parseJson";
+import * as vscode from "vscode";
 import { WorkflowData, WorkflowJson } from "../types";
+import parseJson from "../utils/parseJson";
+import { OpenfnRcManager } from "./OpenfnRcManager";
 
 interface ActiveFileMeta {
   isJob: boolean;
@@ -30,24 +30,17 @@ export class WorkflowManager implements vscode.Disposable {
     this.onActiveFileChange = this.activeFileEmitter.event;
     this.onWorkflowChange = this.workflowsEmitter.event;
 
-    this.api.window.onDidChangeActiveTextEditor((e) => {
-      if (!e) return;
-      // get the uri of the file.
-      const activeUri = e.document.uri;
-      const found = this.findJobByPath(activeUri.fsPath);
-      if (found)
-        this.activeFileEmitter.fire({
-          isJob: true,
-          document: e.document,
-          adaptor: found.adaptor,
-        });
-      else
-        this.activeFileEmitter.fire({
-          isJob: false,
-          document: e.document,
-          adaptor: undefined,
-        });
+    // wait for initial workflow change and fire active file
+    // this is to register language support in already open text document.
+    const wc = this.onWorkflowChange(() => {
+      this.emitActiveFileHelper.call(this, this.api.window.activeTextEditor);
+      wc.dispose(); // to be used only once and disposed
     });
+
+    // calls when editor is changed
+    this.api.window.onDidChangeActiveTextEditor(
+      this.emitActiveFileHelper.bind(this)
+    );
   }
 
   get activeFile(): ActiveFileMeta | undefined {
@@ -130,6 +123,25 @@ export class WorkflowManager implements vscode.Disposable {
 
     this.workflowFiles = workflows;
     this.workflowsEmitter.fire(workflows);
+  }
+
+  private emitActiveFileHelper(e: vscode.TextEditor | undefined) {
+    if (!e) return;
+    // get the uri of the file.
+    const activeUri = e.document.uri;
+    const found = this.findJobByPath(activeUri.fsPath);
+    if (found)
+      this.activeFileEmitter.fire({
+        isJob: true,
+        document: e.document,
+        adaptor: found.adaptor,
+      });
+    else
+      this.activeFileEmitter.fire({
+        isJob: false,
+        document: e.document,
+        adaptor: undefined,
+      });
   }
 
   async openFile(path: vscode.Uri) {
