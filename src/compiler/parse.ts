@@ -11,7 +11,17 @@ type ParserResult =
 
 export default function parseSource(source: string): ParserResult {
   try {
-    const ast = recast.parse(source, { parser: acorn });
+    const ast = recast.parse(source, {
+      parser: {
+        parse: (source: string) =>
+          acorn.parse(source, {
+            sourceType: "module",
+            ecmaVersion: "latest",
+            allowHashBang: true,
+            locations: true,
+          }),
+      },
+    });
     return { error: false, ast };
   } catch (e: any) {
     // TODO: check if .pos and .raisedAt exists first
