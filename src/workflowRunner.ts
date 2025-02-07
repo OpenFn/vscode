@@ -29,12 +29,13 @@ function isOpenfnCLIAvailable() {
 }
 
 const INSTALL_CLI = "Click to Install";
-export async function runWorkflow(
+export async function runWorkflowHelper(
   workflowInfo: {
     path: string;
     name?: string;
   },
-  workspaceUri: vscode.Uri
+  workspaceUri: vscode.Uri,
+  inputPath?: string
 ) {
   // compute output path here!
   const outputPath = path.join(
@@ -43,6 +44,7 @@ export async function runWorkflow(
       workflowInfo.name || "no-name"
     )}-output.json`
   );
+
   const isAvailable = await isOpenfnCLIAvailable();
   if (!isAvailable) {
     const pick = await vscode.window.showWarningMessage(
@@ -56,7 +58,9 @@ export async function runWorkflow(
     fs.mkdirSync(dirPath, { recursive: true });
     runTerminal(
       "Running workflow",
-      `openfn ${workflowInfo.path} -o ${outputPath}`
+      `openfn ${workflowInfo.path} ${
+        inputPath ? "-s " + inputPath : ""
+      } -o ${outputPath}`
     );
   }
 }

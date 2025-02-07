@@ -21,7 +21,11 @@ export function activate(context: vscode.ExtensionContext) {
   const activeWorkspace = workspaceFolder[0];
 
   // start
-  const workflowManager = new WorkflowManager(vscode, activeWorkspace.uri);
+  const workflowManager = new WorkflowManager(
+    vscode,
+    activeWorkspace.uri,
+    context.workspaceState
+  );
   const treeviewProvider = new TreeViewProvider(
     () => workflowManager.workflowFiles
   );

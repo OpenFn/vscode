@@ -3,11 +3,19 @@ import * as vscode from "vscode";
 import { WorkflowData, WorkflowJson } from "../types";
 import parseJson from "../utils/parseJson";
 import { OpenfnRcManager } from "./OpenfnRcManager";
+import { runWorkflowHelper } from "../workflowRunner";
+import { existsSync } from "fs";
 
 interface ActiveFileMeta {
   isJob: boolean;
   document: vscode.TextDocument;
   adaptor: string | undefined;
+}
+
+const RECENT_INPUTS_KEY = "recent_inputs";
+
+interface InputPickItem extends vscode.QuickPickItem {
+  id: string;
 }
 
 export class WorkflowManager implements vscode.Disposable {
@@ -19,7 +27,11 @@ export class WorkflowManager implements vscode.Disposable {
   private watcher!: vscode.FileSystemWatcher;
   workflowFiles: WorkflowData[] = [];
   private rcManager: OpenfnRcManager;
-  constructor(public api: typeof vscode, public workspaceUri: vscode.Uri) {
+  constructor(
+    public api: typeof vscode,
+    public workspaceUri: vscode.Uri,
+    private storage: vscode.Memento
+  ) {
     this.rcManager = new OpenfnRcManager(this.workspaceUri);
     this.onAvailabilityChange = this.rcManager.onAvailabilityChange; // hook workspace availability change to .openfnrc manager
     this.watchWorkflows();
@@ -41,6 +53,23 @@ export class WorkflowManager implements vscode.Disposable {
     this.api.window.onDidChangeActiveTextEditor(
       this.emitActiveFileHelper.bind(this)
     );
+
+    // initialize recent workflow execution inputs.
+    const rInputs = storage.get<Record<string, string>>(RECENT_INPUTS_KEY);
+    if (!rInputs) storage.update(RECENT_INPUTS_KEY, {});
+  }
+
+  getWorkflowRecentInput(workflowPath: string) {
+    const rInputs = this.storage.get<Record<string, string>>(RECENT_INPUTS_KEY);
+    if (!rInputs || !rInputs[workflowPath]) return undefined;
+    if (!existsSync(rInputs[workflowPath])) return undefined;
+    return rInputs[workflowPath];
+  }
+
+  updateWorkflowRecentInput(workflowPath: string, inputPath: string) {
+    const rInputs = this.storage.get<Record<string, string>>(RECENT_INPUTS_KEY);
+    const newInputs = { ...rInputs, [workflowPath]: inputPath };
+    this.storage.update(RECENT_INPUTS_KEY, newInputs);
   }
 
   get activeFile(): ActiveFileMeta | undefined {
@@ -142,6 +171,53 @@ export class WorkflowManager implements vscode.Disposable {
         document: e.document,
         adaptor: undefined,
       });
+  }
+
+  async runWorkflow(workflowInfo: { path: string; name?: string }) {
+    // show input options & then recent input too
+    const recentInput = this.getWorkflowRecentInput(workflowInfo.path);
+    const sources = (
+      recentInput
+        ? [
+            {
+              label: "Previous Input",
+              detail: recentInput,
+              id: "previous",
+            },
+          ]
+        : []
+    ).concat([
+      {
+        label: "No input",
+        detail: "run workflow without an input. default {}",
+        id: "none",
+      },
+      {
+        label: "Select File...",
+        detail: "select a file from your machine as input source",
+        id: "select",
+      },
+    ]);
+    const result = await this.api.window.showQuickPick<InputPickItem>(sources, {
+      title: "Select input source",
+      canPickMany: false,
+    });
+
+    let inputPath: string | undefined = undefined;
+    if (!result) return;
+    if (result.id === "select") {
+      const selectedUri = await vscode.window.showOpenDialog({
+        canSelectMany: false,
+        openLabel: "Select Input Json File",
+        filters: {
+          "Json Files": ["json"],
+        },
+      });
+      if (selectedUri?.length) inputPath = selectedUri[0].fsPath;
+    } else if (result.id === "previous") inputPath = recentInput;
+
+    if (inputPath) this.updateWorkflowRecentInput(workflowInfo.path, inputPath);
+    runWorkflowHelper(workflowInfo, this.workspaceUri, inputPath);
   }
 
   async openFile(path: vscode.Uri) {
