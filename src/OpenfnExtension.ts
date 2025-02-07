@@ -1,13 +1,12 @@
-import * as vscode from "vscode";
 import * as path from "path";
+import * as vscode from "vscode";
 
-import { WorkflowManager } from "./managers/WorkflowManager";
-import { TreeviewItem, TreeViewProvider } from "./TreeViewProvider";
-import { StatusBarManager } from "./managers/StatusBarManager";
-import registerSemanticColoring from "./SemanticColoring";
-import { runWorkflow } from "./workflowRunner";
 import { CompletionManager } from "./managers/CompletionManager";
 import { SourceManager } from "./managers/SourceManager";
+import { StatusBarManager } from "./managers/StatusBarManager";
+import { WorkflowManager } from "./managers/WorkflowManager";
+import registerSemanticColoring from "./SemanticColoring";
+import { TreeviewItem, TreeViewProvider } from "./TreeViewProvider";
 import { debounce } from "./utils/debounce";
 
 const supportedExtension = [".fn", ".js", ".ofn", ".openfn"];
@@ -131,7 +130,7 @@ export class OpenFnExtension implements vscode.Disposable {
             workflowInfo = { path: result.workflowPath, name: result.label };
         }
         if (workflowInfo) {
-          runWorkflow(workflowInfo, workflowManager.workspaceUri);
+          workflowManager.runWorkflow(workflowInfo);
         }
       }
     );
@@ -139,10 +138,7 @@ export class OpenFnExtension implements vscode.Disposable {
     this.workflowManager.api.commands.registerCommand(
       "openfn.workflow.item.run",
       (item: TreeviewItem) => {
-        runWorkflow(
-          { path: item.filePath, name: item.label },
-          workflowManager.workspaceUri
-        );
+        workflowManager.runWorkflow({ path: item.filePath, name: item.label });
       }
     );
 
