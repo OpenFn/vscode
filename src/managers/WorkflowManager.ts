@@ -4,6 +4,7 @@ import { WorkflowData, WorkflowJson } from "../types";
 import parseJson from "../utils/parseJson";
 import { OpenfnRcManager } from "./OpenfnRcManager";
 import { runWorkflowHelper } from "../workflowRunner";
+import { existsSync } from "fs";
 
 interface ActiveFileMeta {
   isJob: boolean;
@@ -61,6 +62,7 @@ export class WorkflowManager implements vscode.Disposable {
   getWorkflowRecentInput(workflowPath: string) {
     const rInputs = this.storage.get<Record<string, string>>(RECENT_INPUTS_KEY);
     if (!rInputs || !rInputs[workflowPath]) return undefined;
+    if (!existsSync(rInputs[workflowPath])) return undefined;
     return rInputs[workflowPath];
   }
 
