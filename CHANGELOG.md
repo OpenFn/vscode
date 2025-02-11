@@ -5,11 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.1.0] - 2025-02-11
 
-- Activity Bar with workflows & their listed jobs
-- Syntax highlighting for the state keyword
-- Provide JS syntax highlighting to .fn files
-- OpenFn tag in the status bar
-- OpenFn adaptor name in the status bar for the open job file
-- Autocomplete for job file given its corresponding adaptor
+### Added
+
+- **interface:** Activity Bar with workflows & their listed jobs
+- **syntax:** Syntax highlighting for the state keyword
+- **syntax:** Provide JS syntax highlighting to .fn files
+- **interface:** OpenFn tag in the status bar
+- **interface:** OpenFn adaptor name in the status bar for the open job file
+- **lang-support:** Autocomplete for job file given its corresponding adaptor
+- **execution:** Execution of workflow via the OpenFn CLI
+- **lang-support:** Show JS parse errors in openfn files
