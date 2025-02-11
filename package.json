@@ -55,7 +55,7 @@
     "commands": [
       {
         "command": "openfn.openfnrc",
-        "title": "Generate .openfnrc"
+        "title": "OpenFn: Generate .openfnrc"
       },
       {
         "command": "openfn.run-workflows",

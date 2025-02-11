@@ -17,3 +17,15 @@ A visual studio code extension that provides basic support for writing and manag
 ## Configuration
 
 Currently, you need a .openfnrc file at the root of your project to activate the OpenFn extension.
+
+## Useful commands
+
+Open the Command Palette (Command+Shift+P on macOS and Ctrl+Shift+P on Windows/Linux) and type in one of the following commands:
+
+| Command                           | Description                                                                   |
+| --------------------------------- | ----------------------------------------------------------------------------- |
+| `OpenFn: Run Workflow(s)`         | Run a workflow present in the workspace.                                      |
+| `OpenFn: Generate .openfnrc`      | Generate a .openfnrc file in the current workspace to activate the extension. |
+| `OpenFn: Focus on Workflows View` | Quickly opens the workflows view and focuses on it.                           |
+
+To see all available OpenFn commands, open the Command Palette and type `OpenFn`.
