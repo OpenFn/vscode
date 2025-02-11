@@ -2,7 +2,7 @@
   "name": "openfn-vscode",
   "displayName": "OpenFn VSCode",
   "description": "openfn language support for vscode",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "engines": {
     "vscode": "^1.96.0"
   },
