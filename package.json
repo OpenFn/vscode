@@ -1,12 +1,16 @@
 {
   "name": "openfn-vscode",
-  "displayName": "OpenFn VSCode",
-  "description": "openfn language support for vscode",
-  "version": "0.0.1",
+  "displayName": "OpenFn",
+  "description": "OpenFn language support for vscode",
+  "version": "0.1.0",
+  "publisher": "openfn",
   "engines": {
-    "vscode": "^1.96.0"
+    "vscode": "^1.75.0"
   },
   "categories": [
+    "Programming Languages",
+    "Debuggers",
+    "Snippets",
     "Other"
   ],
   "homepage": "https://github.com/OpenFn/vscode",
@@ -16,6 +20,9 @@
   },
   "bugs": {
     "url": "https://github.com/OpenFn/vscode/issues"
+  },
+  "author": {
+    "name": "Open Function Group"
   },
   "activationEvents": [
     "onStartupFinished"
@@ -48,7 +55,7 @@
     "commands": [
       {
         "command": "openfn.openfnrc",
-        "title": "Generate .openfnrc"
+        "title": "OpenFn: Generate .openfnrc"
       },
       {
         "command": "openfn.run-workflows",
