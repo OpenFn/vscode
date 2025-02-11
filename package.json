@@ -24,6 +24,7 @@
   "author": {
     "name": "Open Function Group"
   },
+  "icon": "icon.png",
   "activationEvents": [
     "onStartupFinished"
   ],
