@@ -1,5 +1,14 @@
 import * as ts from "typescript";
-import { Hover, MarkdownString, Position, TextDocument } from "vscode";
+import {
+  CompletionContext,
+  CompletionItem,
+  CompletionItemKind,
+  Hover,
+  MarkdownString,
+  Position,
+  SnippetString,
+  TextDocument,
+} from "vscode";
 import { loadLibrary } from "./jsLibs";
 
 function getlanguageServiceHost(document: TextDocument) {
@@ -70,4 +79,27 @@ export async function tsHoverHelp(
     return new Hover(hoverInfo);
   }
   return null;
+}
+
+export async function tsCompleteHelp(
+  document: TextDocument,
+  position: Position,
+  _documentContext: CompletionContext
+): Promise<CompletionItem[]> {
+  const jsLanguageService = await getlanguageServiceHost(document);
+  const offset = document.offsetAt(position);
+  const completions = jsLanguageService.getCompletionsAtPosition(
+    document.uri.fsPath,
+    offset,
+    { includeExternalModuleExports: false, includeInsertTextCompletions: false }
+  );
+  if (!completions) return [];
+  return completions.entries.map((entry) => {
+    // TODO: scriptKind to CompletionItemKind conversion
+    const ci = new CompletionItem(entry.name, CompletionItemKind.Constant);
+    ci.detail = entry.labelDetails?.detail;
+    ci.documentation = entry.labelDetails?.description;
+    ci.insertText = new SnippetString(entry.name);
+    return ci;
+  });
 }

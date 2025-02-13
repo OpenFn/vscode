@@ -4,7 +4,7 @@ import generateCompletionItems from "../utils/generateCompletionItems";
 import generateHoverItem from "../utils/generateHoverInformations";
 import generateSignature from "../utils/generateSignature";
 import { getTriggerFunction } from "../utils/getTriggerFunction";
-import { tsHoverHelp } from "../compiler/tsLangSupport";
+import { tsCompleteHelp, tsHoverHelp } from "../compiler/tsLangSupport";
 
 export class CompletionManager implements vscode.Disposable {
   completion: vscode.Disposable | undefined;
@@ -22,10 +22,17 @@ export class CompletionManager implements vscode.Disposable {
         scheme: "file",
       },
       {
-        provideCompletionItems: (document, position, token, context) => {
-          return generateCompletionItems(ast);
+        provideCompletionItems: async (document, position, token, context) => {
+          const adaptorCompletion = generateCompletionItems(ast);
+          const tsCompletion = await tsCompleteHelp(
+            document,
+            position,
+            context
+          );
+          return adaptorCompletion.concat(tsCompletion);
         },
-      }
+      },
+      "."
     );
   }
 
