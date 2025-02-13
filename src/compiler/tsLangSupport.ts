@@ -1,0 +1,73 @@
+import * as ts from "typescript";
+import { Hover, MarkdownString, Position, TextDocument } from "vscode";
+import { loadLibrary } from "./jsLibs";
+
+function getlanguageServiceHost(document: TextDocument) {
+  const compilerOptions: ts.CompilerOptions = {
+    allowNonTsExtensions: true,
+    allowJs: true,
+    target: ts.ScriptTarget.Latest,
+    lib: ["lib.es2020.full.d.ts"],
+    moduleResolution: ts.ModuleResolutionKind.Classic,
+    experimentalDecorators: false,
+  };
+  const host: ts.LanguageServiceHost = {
+    getScriptKind: () => ts.ScriptKind.JS,
+    getCompilationSettings: () => compilerOptions,
+    getScriptFileNames: () => [document.uri.fsPath],
+    getScriptVersion: function (fileName: string): string {
+      if (fileName === document.uri.fsPath) {
+        return String(document.version);
+      }
+      return "1";
+    },
+    getScriptSnapshot: function (
+      fileName: string
+    ): ts.IScriptSnapshot | undefined {
+      let text = "";
+      if (fileName === document.uri.fsPath) {
+        text = document.getText();
+      } else {
+        text = loadLibrary(fileName);
+      }
+      return {
+        getText: (start, end) => text.substring(start, end),
+        getLength: () => text.length,
+        getChangeRange: () => undefined,
+      };
+    },
+    getCurrentDirectory: () => "",
+    getDefaultLibFileName: (_options: ts.CompilerOptions) => "es2020.full",
+    readFile: (
+      path: string,
+      _encoding?: string | undefined
+    ): string | undefined => {
+      if (path === document.uri.fsPath) {
+        return document.getText();
+      } else return loadLibrary(path);
+    },
+    fileExists: function (path: string): boolean {
+      if (path === document.uri.fsPath) return true;
+      return !!loadLibrary(path);
+    },
+  };
+  return ts.createLanguageService(host);
+}
+
+export async function tsHoverHelp(
+  document: TextDocument,
+  position: Position
+): Promise<Hover | null> {
+  const jsLanguageService = await getlanguageServiceHost(document);
+  const info = jsLanguageService.getQuickInfoAtPosition(
+    document.uri.fsPath,
+    document.offsetAt(position)
+  );
+  if (info) {
+    const contents = ts.displayPartsToString(info.displayParts);
+    const hoverInfo = new MarkdownString();
+    hoverInfo.appendMarkdown(["```typescript", contents, "```"].join("\n"));
+    return new Hover(hoverInfo);
+  }
+  return null;
+}

@@ -4,6 +4,7 @@ import generateCompletionItems from "../utils/generateCompletionItems";
 import generateHoverItem from "../utils/generateHoverInformations";
 import generateSignature from "../utils/generateSignature";
 import { getTriggerFunction } from "../utils/getTriggerFunction";
+import { tsHoverHelp } from "../compiler/tsLangSupport";
 
 export class CompletionManager implements vscode.Disposable {
   completion: vscode.Disposable | undefined;
@@ -41,7 +42,9 @@ export class CompletionManager implements vscode.Disposable {
         provideHover(document, position, token) {
           const range = document.getWordRangeAtPosition(position);
           const word = document.getText(range);
-          return generateHoverItem(ast, word);
+          return (
+            generateHoverItem(ast, word) || tsHoverHelp(document, position)
+          );
         },
       }
     );
