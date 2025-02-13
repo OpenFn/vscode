@@ -3,10 +3,13 @@ import {
   CompletionContext,
   CompletionItem,
   CompletionItemKind,
+  Diagnostic,
+  DiagnosticSeverity,
   Hover,
   MarkdownString,
   ParameterInformation,
   Position,
+  Range,
   SignatureHelp,
   SignatureInformation,
   SnippetString,
@@ -151,4 +154,42 @@ export async function tsSignatureHelp(
     return ret;
   }
   return null;
+}
+
+export async function tsSyntacticDiagnostics(
+  document: TextDocument,
+  settings = {}
+): Promise<Diagnostic[]> {
+  // updateHostSettings(settings);
+
+  const jsLanguageService = await getlanguageServiceHost(document);
+  const syntaxDiagnostics: ts.Diagnostic[] =
+    jsLanguageService.getSyntacticDiagnostics(document.uri.fsPath);
+  const semanticDiagnostics = jsLanguageService.getSemanticDiagnostics(
+    document.uri.fsPath
+  );
+  return syntaxDiagnostics
+    .concat(semanticDiagnostics)
+    .filter((d) => ![2792].includes(d.code))
+    .map((diag: ts.Diagnostic): Diagnostic => {
+      return {
+        range: convertRange(document, diag),
+        severity: DiagnosticSeverity.Error,
+        source: "fn",
+        message: ts.flattenDiagnosticMessageText(diag.messageText, "\n"),
+      };
+    });
+}
+
+function convertRange(
+  document: TextDocument,
+  span: { start: number | undefined; length: number | undefined }
+): Range {
+  if (typeof span.start === "undefined") {
+    const pos = document.positionAt(0);
+    return new Range(pos, pos);
+  }
+  const startPosition = document.positionAt(span.start);
+  const endPosition = document.positionAt(span.start + (span.length || 0));
+  return new Range(startPosition, endPosition);
 }

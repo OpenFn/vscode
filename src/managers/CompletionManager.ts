@@ -8,7 +8,7 @@ import {
   tsCompleteHelp,
   tsHoverHelp,
   tsSignatureHelp,
-} from "../compiler/tsLangSupport";
+} from "../tsSupport/tsLangSupport";
 
 export class CompletionManager implements vscode.Disposable {
   completion: vscode.Disposable | undefined;
