@@ -4,7 +4,11 @@ import generateCompletionItems from "../utils/generateCompletionItems";
 import generateHoverItem from "../utils/generateHoverInformations";
 import generateSignature from "../utils/generateSignature";
 import { getTriggerFunction } from "../utils/getTriggerFunction";
-import { tsCompleteHelp, tsHoverHelp } from "../compiler/tsLangSupport";
+import {
+  tsCompleteHelp,
+  tsHoverHelp,
+  tsSignatureHelp,
+} from "../compiler/tsLangSupport";
 
 export class CompletionManager implements vscode.Disposable {
   completion: vscode.Disposable | undefined;
@@ -66,7 +70,9 @@ export class CompletionManager implements vscode.Disposable {
         scheme: "file",
       },
       {
-        provideSignatureHelp(document, position, token, context) {
+        async provideSignatureHelp(document, position, token, context) {
+          const tsSignature = await tsSignatureHelp(document, position);
+          if (tsSignature) return tsSignature;
           const lineContent = document.lineAt(position.line).text;
           const pos = position.character - 1;
           const resp = getTriggerFunction(lineContent, pos); // pos should be on the trigger char

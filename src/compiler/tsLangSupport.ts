@@ -5,7 +5,10 @@ import {
   CompletionItemKind,
   Hover,
   MarkdownString,
+  ParameterInformation,
   Position,
+  SignatureHelp,
+  SignatureInformation,
   SnippetString,
   TextDocument,
 } from "vscode";
@@ -102,4 +105,50 @@ export async function tsCompleteHelp(
     ci.insertText = new SnippetString(entry.name);
     return ci;
   });
+}
+
+export async function tsSignatureHelp(
+  document: TextDocument,
+  position: Position
+): Promise<SignatureHelp | null> {
+  const jsLanguageService = await getlanguageServiceHost(document);
+  const signHelp = jsLanguageService.getSignatureHelpItems(
+    document.uri.fsPath,
+    document.offsetAt(position),
+    undefined
+  );
+  if (signHelp) {
+    const ret: SignatureHelp = {
+      activeSignature: signHelp.selectedItemIndex,
+      activeParameter: signHelp.argumentIndex,
+      signatures: [],
+    };
+    signHelp.items.forEach((item) => {
+      const signature: SignatureInformation = {
+        label: "",
+        documentation: undefined,
+        parameters: [],
+      };
+
+      signature.label += ts.displayPartsToString(item.prefixDisplayParts);
+      item.parameters.forEach((p, i, a) => {
+        const label = ts.displayPartsToString(p.displayParts);
+        const parameter: ParameterInformation = {
+          label: label,
+          documentation: ts.displayPartsToString(p.documentation),
+        };
+        signature.label += label;
+        signature.parameters!.push(parameter);
+        if (i < a.length - 1) {
+          signature.label += ts.displayPartsToString(
+            item.separatorDisplayParts
+          );
+        }
+      });
+      signature.label += ts.displayPartsToString(item.suffixDisplayParts);
+      ret.signatures.push(signature);
+    });
+    return ret;
+  }
+  return null;
 }
