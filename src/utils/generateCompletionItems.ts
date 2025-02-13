@@ -12,7 +12,6 @@ export default function generateCompletionItems(ast: AdaptorAst) {
       vscode.CompletionItemKind.Function
     );
     customCompletion.detail = item.docs.description;
-    customCompletion;
     customCompletion.documentation = item.docs.description;
     customCompletion.insertText = new vscode.SnippetString(
       `${item.name}\${1:}`

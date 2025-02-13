@@ -4,6 +4,11 @@ import generateCompletionItems from "../utils/generateCompletionItems";
 import generateHoverItem from "../utils/generateHoverInformations";
 import generateSignature from "../utils/generateSignature";
 import { getTriggerFunction } from "../utils/getTriggerFunction";
+import {
+  tsCompleteHelp,
+  tsHoverHelp,
+  tsSignatureHelp,
+} from "../tsSupport/tsLangSupport";
 
 export class CompletionManager implements vscode.Disposable {
   completion: vscode.Disposable | undefined;
@@ -21,10 +26,17 @@ export class CompletionManager implements vscode.Disposable {
         scheme: "file",
       },
       {
-        provideCompletionItems: (document, position, token, context) => {
-          return generateCompletionItems(ast);
+        provideCompletionItems: async (document, position, token, context) => {
+          const adaptorCompletion = generateCompletionItems(ast);
+          const tsCompletion = await tsCompleteHelp(
+            document,
+            position,
+            context
+          );
+          return adaptorCompletion.concat(tsCompletion);
         },
-      }
+      },
+      "."
     );
   }
 
@@ -41,7 +53,9 @@ export class CompletionManager implements vscode.Disposable {
         provideHover(document, position, token) {
           const range = document.getWordRangeAtPosition(position);
           const word = document.getText(range);
-          return generateHoverItem(ast, word);
+          return (
+            generateHoverItem(ast, word) || tsHoverHelp(document, position)
+          );
         },
       }
     );
@@ -56,7 +70,9 @@ export class CompletionManager implements vscode.Disposable {
         scheme: "file",
       },
       {
-        provideSignatureHelp(document, position, token, context) {
+        async provideSignatureHelp(document, position, token, context) {
+          const tsSignature = await tsSignatureHelp(document, position);
+          if (tsSignature) return tsSignature;
           const lineContent = document.lineAt(position.line).text;
           const pos = position.character - 1;
           const resp = getTriggerFunction(lineContent, pos); // pos should be on the trigger char
