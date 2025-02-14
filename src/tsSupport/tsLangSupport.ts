@@ -21,8 +21,9 @@ function getlanguageServiceHost(document: TextDocument) {
   const compilerOptions: ts.CompilerOptions = {
     allowNonTsExtensions: true,
     allowJs: true,
+    checkJs: true,
     target: ts.ScriptTarget.Latest,
-    lib: ["lib.es2020.full.d.ts"],
+    lib: ["lib.es2020.d.ts"],
     moduleResolution: ts.ModuleResolutionKind.Classic,
     experimentalDecorators: false,
   };
@@ -52,7 +53,7 @@ function getlanguageServiceHost(document: TextDocument) {
       };
     },
     getCurrentDirectory: () => "",
-    getDefaultLibFileName: (_options: ts.CompilerOptions) => "es2020.full",
+    getDefaultLibFileName: (_options: ts.CompilerOptions) => "es2020",
     readFile: (
       path: string,
       _encoding?: string | undefined
