@@ -1,9 +1,4 @@
 import * as vscode from "vscode";
-import downloadAst from "../utils/downloadAst";
-import generateCompletionItems from "../utils/generateCompletionItems";
-import generateHoverItem from "../utils/generateHoverInformations";
-import generateSignature from "../utils/generateSignature";
-import { getTriggerFunction } from "../utils/getTriggerFunction";
 import {
   tsCompleteHelp,
   tsHoverHelp,
@@ -17,8 +12,6 @@ export class CompletionManager implements vscode.Disposable {
   constructor() {}
 
   async registerCompletions(adaptor: string) {
-    const ast = await downloadAst(adaptor);
-    if (!ast) return;
     if (this.completion) this.completion.dispose();
     this.completion = vscode.languages.registerCompletionItemProvider(
       {
@@ -27,13 +20,7 @@ export class CompletionManager implements vscode.Disposable {
       },
       {
         provideCompletionItems: async (document, position, token, context) => {
-          const adaptorCompletion = generateCompletionItems(ast);
-          const tsCompletion = await tsCompleteHelp(
-            document,
-            position,
-            context
-          );
-          return adaptorCompletion.concat(tsCompletion);
+          return await tsCompleteHelp(document, position, adaptor);
         },
       },
       "."
@@ -41,8 +28,6 @@ export class CompletionManager implements vscode.Disposable {
   }
 
   async registerHoverSupport(adaptor: string) {
-    const ast = await downloadAst(adaptor);
-    if (!ast) return;
     if (this.hover) this.hover.dispose();
     this.hover = vscode.languages.registerHoverProvider(
       {
@@ -51,19 +36,13 @@ export class CompletionManager implements vscode.Disposable {
       },
       {
         provideHover(document, position, token) {
-          const range = document.getWordRangeAtPosition(position);
-          const word = document.getText(range);
-          return (
-            generateHoverItem(ast, word) || tsHoverHelp(document, position)
-          );
+          return tsHoverHelp(document, position, adaptor);
         },
       }
     );
   }
 
   async registerSignatureHelpProvider(adaptor: string) {
-    const ast = await downloadAst(adaptor);
-    if (!ast) return;
     this.signature = vscode.languages.registerSignatureHelpProvider(
       {
         language: "fn",
@@ -71,15 +50,7 @@ export class CompletionManager implements vscode.Disposable {
       },
       {
         async provideSignatureHelp(document, position, token, context) {
-          const tsSignature = await tsSignatureHelp(document, position);
-          if (tsSignature) return tsSignature;
-          const lineContent = document.lineAt(position.line).text;
-          const pos = position.character - 1;
-          const resp = getTriggerFunction(lineContent, pos); // pos should be on the trigger char
-
-          const m = resp.content.match(/^([a-zA-Z_]\w*)\(?/); // TODO match nested function calls
-          if (m && m[1]) return generateSignature(ast, m[1], resp.commas);
-          return null;
+          return await tsSignatureHelp(document, position, adaptor);
         },
       },
       {

@@ -67,9 +67,11 @@ export class OpenFnExtension implements vscode.Disposable {
         return;
 
       // first call source manager on content before waiting for updates
+      if (!activeFile.adaptor) return;
       this.sourceManager.updateSource(
         activeFile.document,
-        activeFile.document.uri
+        activeFile.document.uri,
+        activeFile.adaptor
       );
       const debouncedSourceUpdate = debounce(
         this.sourceManager.updateSource.bind(this.sourceManager),
@@ -77,7 +79,12 @@ export class OpenFnExtension implements vscode.Disposable {
       );
       this.contentChange =
         this.workflowManager.api.workspace.onDidChangeTextDocument((ev) => {
-          debouncedSourceUpdate(ev.document, ev.document.uri);
+          if (activeFile.adaptor)
+            debouncedSourceUpdate(
+              ev.document,
+              ev.document.uri,
+              activeFile.adaptor
+            );
         });
     });
 

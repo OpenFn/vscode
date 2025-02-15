@@ -17,13 +17,18 @@ import {
 } from "vscode";
 import { loadLibrary } from "./jsLibs";
 
-function getlanguageServiceHost(document: TextDocument) {
+export function getlanguageServiceHost(
+  document: TextDocument,
+  adaptor: string
+) {
+  const defaultLib = ["lib.es2020.d.ts"];
+  const libLoader = loadLibrary([adaptor], defaultLib);
   const compilerOptions: ts.CompilerOptions = {
     allowNonTsExtensions: true,
     allowJs: true,
     checkJs: true,
     target: ts.ScriptTarget.Latest,
-    lib: ["lib.es2020.d.ts"],
+    lib: [...defaultLib, adaptor],
     moduleResolution: ts.ModuleResolutionKind.Classic,
     experimentalDecorators: false,
   };
@@ -44,7 +49,7 @@ function getlanguageServiceHost(document: TextDocument) {
       if (fileName === document.uri.fsPath) {
         text = document.getText();
       } else {
-        text = loadLibrary(fileName);
+        text = libLoader(fileName);
       }
       return {
         getText: (start, end) => text.substring(start, end),
@@ -60,11 +65,11 @@ function getlanguageServiceHost(document: TextDocument) {
     ): string | undefined => {
       if (path === document.uri.fsPath) {
         return document.getText();
-      } else return loadLibrary(path);
+      } else return libLoader(path);
     },
     fileExists: function (path: string): boolean {
       if (path === document.uri.fsPath) return true;
-      return !!loadLibrary(path);
+      return !!libLoader(path);
     },
   };
   return ts.createLanguageService(host);
@@ -72,9 +77,10 @@ function getlanguageServiceHost(document: TextDocument) {
 
 export async function tsHoverHelp(
   document: TextDocument,
-  position: Position
+  position: Position,
+  adaptor: string
 ): Promise<Hover | null> {
-  const jsLanguageService = await getlanguageServiceHost(document);
+  const jsLanguageService = await getlanguageServiceHost(document, adaptor);
   const info = jsLanguageService.getQuickInfoAtPosition(
     document.uri.fsPath,
     document.offsetAt(position)
@@ -91,9 +97,9 @@ export async function tsHoverHelp(
 export async function tsCompleteHelp(
   document: TextDocument,
   position: Position,
-  _documentContext: CompletionContext
+  adaptor: string
 ): Promise<CompletionItem[]> {
-  const jsLanguageService = await getlanguageServiceHost(document);
+  const jsLanguageService = await getlanguageServiceHost(document, adaptor);
   const offset = document.offsetAt(position);
   const completions = jsLanguageService.getCompletionsAtPosition(
     document.uri.fsPath,
@@ -113,9 +119,10 @@ export async function tsCompleteHelp(
 
 export async function tsSignatureHelp(
   document: TextDocument,
-  position: Position
+  position: Position,
+  adaptor: string
 ): Promise<SignatureHelp | null> {
-  const jsLanguageService = await getlanguageServiceHost(document);
+  const jsLanguageService = await getlanguageServiceHost(document, adaptor);
   const signHelp = jsLanguageService.getSignatureHelpItems(
     document.uri.fsPath,
     document.offsetAt(position),
@@ -159,11 +166,11 @@ export async function tsSignatureHelp(
 
 export async function tsSyntacticDiagnostics(
   document: TextDocument,
-  settings = {}
+  adaptor: string
 ): Promise<Diagnostic[]> {
   // updateHostSettings(settings);
 
-  const jsLanguageService = await getlanguageServiceHost(document);
+  const jsLanguageService = await getlanguageServiceHost(document, adaptor);
   const syntaxDiagnostics: ts.Diagnostic[] =
     jsLanguageService.getSyntacticDiagnostics(document.uri.fsPath);
   const semanticDiagnostics = jsLanguageService.getSemanticDiagnostics(

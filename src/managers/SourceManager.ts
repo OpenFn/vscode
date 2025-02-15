@@ -10,8 +10,12 @@ export class SourceManager implements vscode.Disposable {
   }
 
   // get the source document and update
-  async updateSource(document: vscode.TextDocument, uri: vscode.Uri) {
-    const syntaxE = await tsSyntacticDiagnostics(document);
+  async updateSource(
+    document: vscode.TextDocument,
+    uri: vscode.Uri,
+    adaptor: string
+  ) {
+    const syntaxE = await tsSyntacticDiagnostics(document, adaptor);
     this.diagCollection.set(uri, syntaxE);
   }
 
