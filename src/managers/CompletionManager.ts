@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 import {
   tsCompleteHelp,
+  tsFindDefinition,
   tsHoverHelp,
   tsSignatureHelp,
 } from "../tsSupport/tsLangSupport";
@@ -9,6 +10,7 @@ export class CompletionManager implements vscode.Disposable {
   completion: vscode.Disposable | undefined;
   hover: vscode.Disposable | undefined;
   signature: vscode.Disposable | undefined;
+  definition: vscode.Disposable | undefined;
   constructor() {}
 
   async registerCompletions(adaptor: string) {
@@ -19,8 +21,8 @@ export class CompletionManager implements vscode.Disposable {
         scheme: "file",
       },
       {
-        provideCompletionItems: async (document, position, token, context) => {
-          return await tsCompleteHelp(document, position, adaptor);
+        provideCompletionItems(document, position, token, context) {
+          return tsCompleteHelp(document, position, adaptor);
         },
       },
       "."
@@ -43,14 +45,15 @@ export class CompletionManager implements vscode.Disposable {
   }
 
   async registerSignatureHelpProvider(adaptor: string) {
+    if (this.signature) this.signature.dispose();
     this.signature = vscode.languages.registerSignatureHelpProvider(
       {
         language: "fn",
         scheme: "file",
       },
       {
-        async provideSignatureHelp(document, position, token, context) {
-          return await tsSignatureHelp(document, position, adaptor);
+        provideSignatureHelp(document, position, token, context) {
+          return tsSignatureHelp(document, position, adaptor);
         },
       },
       {
@@ -60,9 +63,25 @@ export class CompletionManager implements vscode.Disposable {
     );
   }
 
+  async registerDefinitionHelp(adaptor: string) {
+    if (this.definition) this.definition.dispose();
+    this.definition = vscode.languages.registerDefinitionProvider(
+      {
+        language: "fn",
+        scheme: "file",
+      },
+      {
+        provideDefinition(document, position, token) {
+          return tsFindDefinition(document, position, adaptor);
+        },
+      }
+    );
+  }
+
   dispose() {
     if (this.completion) this.completion.dispose();
     if (this.hover) this.hover.dispose();
     if (this.signature) this.signature.dispose();
+    if (this.definition) this.definition.dispose();
   }
 }

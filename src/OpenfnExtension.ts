@@ -52,6 +52,7 @@ export class OpenFnExtension implements vscode.Disposable {
           this.completionManager.registerSignatureHelpProvider(
             activeFile.adaptor
           );
+          this.completionManager.registerDefinitionHelp(activeFile.adaptor);
         }
       } else {
         if (this.isOpenfnWorkspace) this.statusBarManager.setStatusActive();

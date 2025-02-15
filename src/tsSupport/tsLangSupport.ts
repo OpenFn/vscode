@@ -1,8 +1,7 @@
 import * as ts from "typescript";
 import {
-  CompletionContext,
   CompletionItem,
-  CompletionItemKind,
+  Definition,
   Diagnostic,
   DiagnosticSeverity,
   Hover,
@@ -188,6 +187,29 @@ export async function tsSyntacticDiagnostics(
         message: ts.flattenDiagnosticMessageText(diag.messageText, "\n"),
       };
     });
+}
+
+export async function tsFindDefinition(
+  document: TextDocument,
+  position: Position,
+  adaptor: string
+): Promise<Definition | null> {
+  const jsLanguageService = await getlanguageServiceHost(document, adaptor);
+  const definition = jsLanguageService.getDefinitionAtPosition(
+    document.uri.fsPath,
+    document.offsetAt(position)
+  );
+  if (definition) {
+    return definition
+      .filter((d) => d.fileName === document.uri.fsPath)
+      .map((d) => {
+        return {
+          uri: document.uri,
+          range: convertRange(document, d.textSpan),
+        };
+      });
+  }
+  return null;
 }
 
 function convertRange(
