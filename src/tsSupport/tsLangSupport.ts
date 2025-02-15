@@ -16,6 +16,7 @@ import {
   TextDocument,
 } from "vscode";
 import { loadLibrary } from "./jsLibs";
+import { convertKind } from "./kind";
 
 export function getlanguageServiceHost(
   document: TextDocument,
@@ -109,7 +110,7 @@ export async function tsCompleteHelp(
   if (!completions) return [];
   return completions.entries.map((entry) => {
     // TODO: scriptKind to CompletionItemKind conversion
-    const ci = new CompletionItem(entry.name, CompletionItemKind.Constant);
+    const ci = new CompletionItem(entry.name, convertKind(entry.kind));
     ci.detail = entry.labelDetails?.detail;
     ci.documentation = entry.labelDetails?.description;
     ci.insertText = new SnippetString(entry.name);
