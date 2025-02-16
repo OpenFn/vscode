@@ -13,16 +13,18 @@ import {
   SignatureInformation,
   SnippetString,
   TextDocument,
+  Uri,
 } from "vscode";
 import { loadLibrary } from "./jsLibs";
 import { convertKind } from "./kind";
+import { join } from "path";
 
 export function getlanguageServiceHost(
   document: TextDocument,
   adaptor: string
 ) {
   const defaultLib = ["lib.es2020.d.ts"];
-  const libLoader = loadLibrary([adaptor], defaultLib);
+  const libLoader = loadLibrary(adaptor, defaultLib);
   const compilerOptions: ts.CompilerOptions = {
     allowNonTsExtensions: true,
     allowJs: true,
@@ -49,7 +51,7 @@ export function getlanguageServiceHost(
       if (fileName === document.uri.fsPath) {
         text = document.getText();
       } else {
-        text = libLoader(fileName);
+        text = libLoader.load(fileName);
       }
       return {
         getText: (start, end) => text.substring(start, end),
@@ -65,14 +67,17 @@ export function getlanguageServiceHost(
     ): string | undefined => {
       if (path === document.uri.fsPath) {
         return document.getText();
-      } else return libLoader(path);
+      } else return libLoader.load(path);
     },
     fileExists: function (path: string): boolean {
       if (path === document.uri.fsPath) return true;
-      return !!libLoader(path);
+      return !!libLoader.load(path);
     },
   };
-  return ts.createLanguageService(host);
+  return {
+    host: ts.createLanguageService(host),
+    adaptorPath: libLoader.adaptorPath,
+  };
 }
 
 export async function tsHoverHelp(
@@ -81,7 +86,7 @@ export async function tsHoverHelp(
   adaptor: string
 ): Promise<Hover | null> {
   const jsLanguageService = await getlanguageServiceHost(document, adaptor);
-  const info = jsLanguageService.getQuickInfoAtPosition(
+  const info = jsLanguageService.host.getQuickInfoAtPosition(
     document.uri.fsPath,
     document.offsetAt(position)
   );
@@ -101,7 +106,7 @@ export async function tsCompleteHelp(
 ): Promise<CompletionItem[]> {
   const jsLanguageService = await getlanguageServiceHost(document, adaptor);
   const offset = document.offsetAt(position);
-  const completions = jsLanguageService.getCompletionsAtPosition(
+  const completions = jsLanguageService.host.getCompletionsAtPosition(
     document.uri.fsPath,
     offset,
     { includeExternalModuleExports: false, includeInsertTextCompletions: false }
@@ -123,7 +128,7 @@ export async function tsSignatureHelp(
   adaptor: string
 ): Promise<SignatureHelp | null> {
   const jsLanguageService = await getlanguageServiceHost(document, adaptor);
-  const signHelp = jsLanguageService.getSignatureHelpItems(
+  const signHelp = jsLanguageService.host.getSignatureHelpItems(
     document.uri.fsPath,
     document.offsetAt(position),
     undefined
@@ -172,8 +177,8 @@ export async function tsSyntacticDiagnostics(
 
   const jsLanguageService = await getlanguageServiceHost(document, adaptor);
   const syntaxDiagnostics: ts.Diagnostic[] =
-    jsLanguageService.getSyntacticDiagnostics(document.uri.fsPath);
-  const semanticDiagnostics = jsLanguageService.getSemanticDiagnostics(
+    jsLanguageService.host.getSyntacticDiagnostics(document.uri.fsPath);
+  const semanticDiagnostics = jsLanguageService.host.getSemanticDiagnostics(
     document.uri.fsPath
   );
   return syntaxDiagnostics
@@ -195,17 +200,27 @@ export async function tsFindDefinition(
   adaptor: string
 ): Promise<Definition | null> {
   const jsLanguageService = await getlanguageServiceHost(document, adaptor);
-  const definition = jsLanguageService.getDefinitionAtPosition(
+  const definition = jsLanguageService.host.getDefinitionAtPosition(
     document.uri.fsPath,
     document.offsetAt(position)
   );
+
   if (definition) {
     return definition
-      .filter((d) => d.fileName === document.uri.fsPath)
+      .map((d) => {
+        const isAdaptorType = d.fileName !== document.uri.fsPath;
+        return {
+          ...d,
+          fileName: !isAdaptorType
+            ? document.uri.fsPath
+            : join(jsLanguageService.adaptorPath, d.fileName),
+          isAdaptorType,
+        };
+      })
       .map((d) => {
         return {
-          uri: document.uri,
-          range: convertRange(document, d.textSpan),
+          uri: Uri.parse(d.fileName),
+          range: convertRange(document, d.textSpan), // TODO calculate range against adaptor type doc
         };
       });
   }
