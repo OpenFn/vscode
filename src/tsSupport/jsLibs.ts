@@ -15,8 +15,6 @@ export function loadLibrary(adaptor: string, libs: string[]) {
 
   // path used here isn't fixed and has to be figured out
   const adaptorPath = `/tmp/openfn/repo/node_modules/@openfn/language-${refinedAdaptor}/types`;
-  
-
   const globalExports: Record<string, boolean> = {};
   const namespaces: Record<string, string> = {};
   let activeSource: string = "";
@@ -41,6 +39,7 @@ export function loadLibrary(adaptor: string, libs: string[]) {
         content = readFileSync(libPath).toString();
         // if isIndex parse the code
         if (isIndex) {
+          content = content.replaceAll("'", '"');
           // parse the code here
           const globalMatches = content.matchAll(
             /export\s+\*\s+from\s+\"(.+)\"/g
