@@ -8,6 +8,8 @@ import { WorkflowManager } from "./managers/WorkflowManager";
 import registerSemanticColoring from "./SemanticColoring";
 import { TreeviewItem, TreeViewProvider } from "./TreeViewProvider";
 import { debounce } from "./utils/debounce";
+import { execute } from "./utils/execute";
+import { isAvailableWithInstall } from "./workflowRunner";
 
 const supportedExtension = [".fn", ".js", ".ofn", ".openfn"];
 
@@ -27,6 +29,9 @@ export class OpenFnExtension implements vscode.Disposable {
     private completionManager: CompletionManager,
     private sourceManager: SourceManager
   ) {
+    // check whether openfn cli is available
+    isAvailableWithInstall();
+
     this.initTreeview();
     workflowManager.onAvailabilityChange((active) => {
       this.isOpenfnWorkspace = active;
@@ -89,8 +94,16 @@ export class OpenFnExtension implements vscode.Disposable {
         });
     });
 
-    this.workflowManager.onWorkflowChange((files) => {
+    this.workflowManager.onWorkflowChange(async (files) => {
       this.treeviewProvider.refresh();
+      // collect adaptors and install them
+      const adaptors = files
+        .map((file) => file.steps.map((s) => s.adaptor))
+        .flat()
+        .map((adaptor) => `-a ${adaptor}`);
+
+      // brute install these adaptors!
+      await execute(`openfn repo install ${adaptors.join(" ")}`);
     });
 
     this.workflowManager.api.commands.registerCommand(
