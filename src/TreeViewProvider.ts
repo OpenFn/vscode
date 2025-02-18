@@ -53,13 +53,13 @@ export class TreeviewItem extends vscode.TreeItem {
     public readonly filePath: string,
     public readonly collapsibleState: vscode.TreeItemCollapsibleState,
     public readonly steps: WorkflowData["steps"] = [],
-    private readonly adaptor: string = "none",
+    public readonly adaptor: string | undefined = undefined,
     public readonly command?: vscode.Command
   ) {
     super(label, collapsibleState);
     this.tooltip = this.label;
-    const adaptor_name = this.adaptor.match(/^\w+/)?.[0];
-    if (adaptor_name === "none") {
+    const adaptor_name = this.adaptor?.match(/^\w+/)?.[0];
+    if (!adaptor_name) {
       this.iconPath = path.join(
         __filename,
         "..",
@@ -67,7 +67,6 @@ export class TreeviewItem extends vscode.TreeItem {
         "resources",
         "openfn-square.svg"
       );
-      this.contextValue = "workflow.item";
     } else {
       // is sub-item
       this.iconPath = vscode.Uri.parse(
@@ -75,6 +74,7 @@ export class TreeviewItem extends vscode.TreeItem {
       );
       this.description = this.adaptor;
     }
+    this.contextValue = "workflow.item";
     this.command = {
       command: "openfn-workflows.itemclicked",
       title: "OpenFn Workflows ItemClicked",
