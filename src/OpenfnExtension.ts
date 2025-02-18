@@ -8,6 +8,8 @@ import { WorkflowManager } from "./managers/WorkflowManager";
 import registerSemanticColoring from "./SemanticColoring";
 import { TreeviewItem, TreeViewProvider } from "./TreeViewProvider";
 import { debounce } from "./utils/debounce";
+import { execute } from "./utils/execute";
+import { isAvailableWithInstall } from "./workflowRunner";
 
 const supportedExtension = [".fn", ".js", ".ofn", ".openfn"];
 
@@ -27,6 +29,9 @@ export class OpenFnExtension implements vscode.Disposable {
     private completionManager: CompletionManager,
     private sourceManager: SourceManager
   ) {
+    // check whether openfn cli is available
+    isAvailableWithInstall();
+
     this.initTreeview();
     workflowManager.onAvailabilityChange((active) => {
       this.isOpenfnWorkspace = active;
@@ -52,6 +57,7 @@ export class OpenFnExtension implements vscode.Disposable {
           this.completionManager.registerSignatureHelpProvider(
             activeFile.adaptor
           );
+          this.completionManager.registerDefinitionHelp(activeFile.adaptor);
         }
       } else {
         if (this.isOpenfnWorkspace) this.statusBarManager.setStatusActive();
@@ -67,9 +73,11 @@ export class OpenFnExtension implements vscode.Disposable {
         return;
 
       // first call source manager on content before waiting for updates
+      if (!activeFile.adaptor) return;
       this.sourceManager.updateSource(
         activeFile.document,
-        activeFile.document.uri
+        activeFile.document.uri,
+        activeFile.adaptor
       );
       const debouncedSourceUpdate = debounce(
         this.sourceManager.updateSource.bind(this.sourceManager),
@@ -77,12 +85,25 @@ export class OpenFnExtension implements vscode.Disposable {
       );
       this.contentChange =
         this.workflowManager.api.workspace.onDidChangeTextDocument((ev) => {
-          debouncedSourceUpdate(ev.document, ev.document.uri);
+          if (activeFile.adaptor)
+            debouncedSourceUpdate(
+              ev.document,
+              ev.document.uri,
+              activeFile.adaptor
+            );
         });
     });
 
-    this.workflowManager.onWorkflowChange((files) => {
+    this.workflowManager.onWorkflowChange(async (files) => {
       this.treeviewProvider.refresh();
+      // collect adaptors and install them
+      const adaptors = files
+        .map((file) => file.steps.map((s) => s.adaptor))
+        .flat()
+        .map((adaptor) => `-a ${adaptor}`);
+
+      // brute install these adaptors!
+      await execute(`openfn repo install ${adaptors.join(" ")}`);
     });
 
     this.workflowManager.api.commands.registerCommand(

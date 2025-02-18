@@ -29,6 +29,19 @@ function isOpenfnCLIAvailable() {
 }
 
 const INSTALL_CLI = "Click to Install";
+export async function isAvailableWithInstall() {
+  const isAvailable = await isOpenfnCLIAvailable();
+  if (!isAvailable) {
+    const pick = await vscode.window.showWarningMessage(
+      "You don't have OpenFn CLI installed",
+      INSTALL_CLI
+    );
+    if (pick === INSTALL_CLI)
+      runTerminal("Installing OpenFn CLI", "npm install @openfn/cli -g");
+  }
+  return isAvailable;
+}
+
 export async function runWorkflowHelper(
   workflowInfo: {
     path: string;
@@ -45,15 +58,8 @@ export async function runWorkflowHelper(
     )}-output.json`
   );
 
-  const isAvailable = await isOpenfnCLIAvailable();
-  if (!isAvailable) {
-    const pick = await vscode.window.showWarningMessage(
-      "You don't have OpenFn CLI installed",
-      INSTALL_CLI
-    );
-    if (pick === INSTALL_CLI)
-      runTerminal("Installing OpenFn CLI", "npm install @openfn/cli -g");
-  } else {
+  const isAvailable = await isAvailableWithInstall();
+  if (isAvailable) {
     const dirPath = path.dirname(outputPath);
     fs.mkdirSync(dirPath, { recursive: true });
     runTerminal(
