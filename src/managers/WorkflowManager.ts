@@ -173,7 +173,11 @@ export class WorkflowManager implements vscode.Disposable {
       });
   }
 
-  async runWorkflow(workflowInfo: { path: string; name?: string }) {
+  async runWorkflow(workflowInfo: {
+    path: string;
+    name?: string;
+    adaptor?: string;
+  }) {
     // show input options & then recent input too
     const recentInput = this.getWorkflowRecentInput(workflowInfo.path);
     const sources = (

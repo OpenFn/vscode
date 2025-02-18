@@ -118,7 +118,7 @@ export class OpenFnExtension implements vscode.Disposable {
       async () => {
         if (this.workflowManager.workflowFiles.length === 0) {
           this.workflowManager.api.window.showWarningMessage(
-            "No workflow found the the workspace for execution"
+            "No workflow found in the workspace for execution"
           );
           return;
         }
@@ -159,7 +159,11 @@ export class OpenFnExtension implements vscode.Disposable {
     this.workflowManager.api.commands.registerCommand(
       "openfn.workflow.item.run",
       (item: TreeviewItem) => {
-        workflowManager.runWorkflow({ path: item.filePath, name: item.label });
+        workflowManager.runWorkflow({
+          path: item.filePath,
+          name: item.label,
+          adaptor: item.adaptor,
+        });
       }
     );
 

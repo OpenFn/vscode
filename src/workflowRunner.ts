@@ -46,6 +46,7 @@ export async function runWorkflowHelper(
   workflowInfo: {
     path: string;
     name?: string;
+    adaptor?: string;
   },
   workspaceUri: vscode.Uri,
   inputPath?: string
@@ -66,7 +67,9 @@ export async function runWorkflowHelper(
       "Running workflow",
       `openfn ${workflowInfo.path} ${
         inputPath ? "-s " + inputPath : ""
-      } -o ${outputPath}`
+      } -o ${outputPath} ${
+        workflowInfo.adaptor ? "-a " + workflowInfo.adaptor : ""
+      }`
     );
   }
 }
