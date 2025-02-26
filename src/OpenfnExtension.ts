@@ -104,7 +104,10 @@ export class OpenFnExtension implements vscode.Disposable {
         .map((adaptor) => `-a ${adaptor.full}`);
 
       // brute install these adaptors!
-      await execute(`openfn repo install ${adaptors.join(" ")}`);
+      this.statusBarManager.showOverrideText("installing adaptors...");
+      await execute(`openfn repo install ${adaptors.join(" ")}`).finally(() => {
+        this.statusBarManager.endOverrideText();
+      });
     });
 
     this.workflowManager.api.commands.registerCommand(
