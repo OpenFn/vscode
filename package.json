@@ -86,7 +86,6 @@
         ],
         "extensions": [
           ".fn",
-          ".js",
           ".ofn",
           ".openfn"
         ],
