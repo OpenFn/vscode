@@ -42,5 +42,9 @@ interface Console {
     warn(...data: any[]): void;
 }
 
+/** [Lazy State Reference](https://docs.openfn.org/documentation/jobs/job-writing-guide#the-lazy-state-operator) */
+type LazyState = Record<string, any>;
+
 declare var console: Console;
+declare var $: LazyState;
 `;
