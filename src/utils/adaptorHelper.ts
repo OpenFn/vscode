@@ -10,7 +10,7 @@ export type Adaptor = {
 
 const rE = /(\d+\.\d+\.\d+)/;
 // TODO do some caching for version resolution
-export async function adaptorHelper(adaptor: string): Promise<Adaptor> {
+async function resolveAdaptor(adaptor: string): Promise<Adaptor> {
   let [name, version] = adaptor.split("@");
   if (!version || !rE.test(version)) {
     // get latest version
@@ -24,4 +24,8 @@ export async function adaptorHelper(adaptor: string): Promise<Adaptor> {
     full: `${name}@${version}`,
     refined: `${name}_${version}`,
   };
+}
+
+export async function adaptorHelper(adaptors: string[]): Promise<Adaptor[]> {
+  return await Promise.all(adaptors.map(resolveAdaptor));
 }

@@ -10,7 +10,6 @@ import { TreeviewItem, TreeViewProvider } from "./TreeViewProvider";
 import { debounce } from "./utils/debounce";
 import { execute } from "./utils/execute";
 import { isAvailableWithInstall } from "./workflowRunner";
-import { adaptorHelper } from "./utils/adaptorHelper";
 
 interface PickItem extends vscode.QuickPickItem {
   workflowPath: string;
@@ -45,12 +44,16 @@ export class OpenFnExtension implements vscode.Disposable {
 
     workflowManager.onActiveFileChange(async (activeFile) => {
       if (this.contentChange) this.contentChange.dispose();
-      if (activeFile.adaptor && this.isOpenfnWorkspace) {
+      if (
+        activeFile.adaptors &&
+        activeFile.adaptors.length &&
+        this.isOpenfnWorkspace
+      ) {
         // first call source manager on content before waiting for updates
         this.sourceManager.updateSource(
           activeFile.document,
           activeFile.document.uri,
-          activeFile.adaptor
+          activeFile.adaptors
         );
         const debouncedSourceUpdate = debounce(
           this.sourceManager.updateSource.bind(this.sourceManager),
@@ -58,16 +61,16 @@ export class OpenFnExtension implements vscode.Disposable {
         );
         this.contentChange =
           this.workflowManager.api.workspace.onDidChangeTextDocument((ev) => {
-            if (activeFile.adaptor)
+            if (activeFile.adaptors)
               debouncedSourceUpdate(
                 ev.document,
                 ev.document.uri,
-                activeFile.adaptor
+                activeFile.adaptors
               );
           });
 
         // show adaptor version in status bar
-        this.statusBarManager.setStatusAdaptor(activeFile.adaptor.full);
+        this.statusBarManager.setStatusAdaptor(activeFile.adaptors);
 
         // deal with completion stuff
         if (activeFile.isJob) {
@@ -75,12 +78,12 @@ export class OpenFnExtension implements vscode.Disposable {
             activeFile.document,
             "fn"
           ); // register active file as fn file
-          this.completionManager.registerCompletions(activeFile.adaptor);
-          this.completionManager.registerHoverSupport(activeFile.adaptor);
+          this.completionManager.registerCompletions(activeFile.adaptors);
+          this.completionManager.registerHoverSupport(activeFile.adaptors);
           this.completionManager.registerSignatureHelpProvider(
-            activeFile.adaptor
+            activeFile.adaptors
           );
-          this.completionManager.registerDefinitionHelp(activeFile.adaptor);
+          this.completionManager.registerDefinitionHelp(activeFile.adaptors);
         }
       } else {
         if (this.isOpenfnWorkspace) this.statusBarManager.setStatusActive();
@@ -92,8 +95,8 @@ export class OpenFnExtension implements vscode.Disposable {
       this.treeviewProvider.refresh();
       // collect adaptors and install them
       const adaptors = files
-        .map((file) => file.steps.map((s) => s.adaptor))
-        .flat()
+        .map((file) => file.steps.map((s) => s.adaptors))
+        .flat(2)
         .map((adaptor) => `-a ${adaptor.full}`);
 
       // brute install these adaptors!

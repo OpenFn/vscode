@@ -14,7 +14,7 @@ export class CompletionManager implements vscode.Disposable {
   definition: vscode.Disposable | undefined;
   constructor() {}
 
-  async registerCompletions(adaptor: Adaptor) {
+  async registerCompletions(adaptors: Adaptor[]) {
     if (this.completion) this.completion.dispose();
     this.completion = vscode.languages.registerCompletionItemProvider(
       {
@@ -23,14 +23,14 @@ export class CompletionManager implements vscode.Disposable {
       },
       {
         provideCompletionItems(document, position, token, context) {
-          return tsCompleteHelp(document, position, adaptor);
+          return tsCompleteHelp(document, position, adaptors);
         },
       },
       "."
     );
   }
 
-  async registerHoverSupport(adaptor: Adaptor) {
+  async registerHoverSupport(adaptors: Adaptor[]) {
     if (this.hover) this.hover.dispose();
     this.hover = vscode.languages.registerHoverProvider(
       {
@@ -39,13 +39,13 @@ export class CompletionManager implements vscode.Disposable {
       },
       {
         provideHover(document, position, token) {
-          return tsHoverHelp(document, position, adaptor);
+          return tsHoverHelp(document, position, adaptors);
         },
       }
     );
   }
 
-  async registerSignatureHelpProvider(adaptor: Adaptor) {
+  async registerSignatureHelpProvider(adaptors: Adaptor[]) {
     if (this.signature) this.signature.dispose();
     this.signature = vscode.languages.registerSignatureHelpProvider(
       {
@@ -54,7 +54,7 @@ export class CompletionManager implements vscode.Disposable {
       },
       {
         provideSignatureHelp(document, position, token, context) {
-          return tsSignatureHelp(document, position, adaptor);
+          return tsSignatureHelp(document, position, adaptors);
         },
       },
       {
@@ -64,7 +64,7 @@ export class CompletionManager implements vscode.Disposable {
     );
   }
 
-  async registerDefinitionHelp(adaptor: Adaptor) {
+  async registerDefinitionHelp(adaptors: Adaptor[]) {
     if (this.definition) this.definition.dispose();
     this.definition = vscode.languages.registerDefinitionProvider(
       {
@@ -73,7 +73,7 @@ export class CompletionManager implements vscode.Disposable {
       },
       {
         provideDefinition(document, position, token) {
-          return tsFindDefinition(document, position, adaptor);
+          return tsFindDefinition(document, position, adaptors);
         },
       }
     );

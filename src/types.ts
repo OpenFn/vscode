@@ -7,6 +7,7 @@ export type WorkflowJson = {
       id: string;
       name?: string;
       adaptor: string;
+      adaptors: string[];
       state: Record<string, any>;
       expression: string;
     }>;
@@ -18,7 +19,7 @@ export type WorkflowData = {
   steps: Array<{
     id: string;
     name?: string;
-    adaptor: Adaptor;
+    adaptors: Adaptor[];
     state: Record<string, any>;
     expression: string;
     filePath: string;

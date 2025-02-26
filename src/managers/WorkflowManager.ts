@@ -10,7 +10,7 @@ import { Adaptor, adaptorHelper } from "../utils/adaptorHelper";
 interface ActiveFileMeta {
   isJob: boolean;
   document: vscode.TextDocument;
-  adaptor: Adaptor | undefined;
+  adaptors: Adaptor[] | undefined;
 }
 
 const RECENT_INPUTS_KEY = "recent_inputs";
@@ -81,13 +81,13 @@ export class WorkflowManager implements vscode.Disposable {
         return {
           isJob: true,
           document: activeEditor.document,
-          adaptor: found.adaptor,
+          adaptors: found.adaptors,
         };
       else
         return {
           isJob: false,
           document: activeEditor.document,
-          adaptor: undefined,
+          adaptors: undefined,
         };
     }
     return undefined;
@@ -143,11 +143,13 @@ export class WorkflowManager implements vscode.Disposable {
         filePath: w.filePath,
         name: w.result.workflow.name,
         steps: await Promise.all(
-          w.result.workflow.steps.map(async (step) => ({
-            ...step,
-            adaptor: await adaptorHelper(step.adaptor),
-            filePath: path.join(path.dirname(w.filePath), step.expression),
-          }))
+          w.result.workflow.steps
+            .filter((s) => s.adaptors?.length || s.adaptor)
+            .map(async (step) => ({
+              ...step,
+              adaptors: await adaptorHelper(step.adaptors || [step.adaptor]),
+              filePath: path.join(path.dirname(w.filePath), step.expression),
+            }))
         ),
       };
       // TODO find job paths that don't exist and mention them
@@ -167,13 +169,13 @@ export class WorkflowManager implements vscode.Disposable {
       this.activeFileEmitter.fire({
         isJob: true,
         document: e.document,
-        adaptor: found.adaptor,
+        adaptors: found.adaptors,
       });
     else
       this.activeFileEmitter.fire({
         isJob: false,
         document: e.document,
-        adaptor: undefined,
+        adaptors: undefined,
       });
   }
 
