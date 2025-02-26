@@ -1,4 +1,5 @@
 import * as vscode from "vscode";
+import { Adaptor } from "../utils/adaptorHelper";
 
 export class StatusBarManager implements vscode.Disposable {
   status!: vscode.StatusBarItem;
@@ -28,8 +29,8 @@ export class StatusBarManager implements vscode.Disposable {
     );
   }
 
-  setStatusAdaptor(adaptor: string) {
-    this.status.text = `${adaptor}`;
+  setStatusAdaptor(adaptor: Adaptor[]) {
+    this.status.text = `${adaptor.map((a) => a.full).join(" + ")}`;
     this.status.tooltip = "OpenFn Workspace detected";
   }
 

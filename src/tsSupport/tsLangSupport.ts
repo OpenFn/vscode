@@ -22,7 +22,7 @@ import { Adaptor } from "../utils/adaptorHelper";
 
 export function getlanguageServiceHost(
   document: TextDocument,
-  adaptor: Adaptor
+  adaptor: Adaptor[]
 ) {
   const defaultLib = ["lib.es2020.d.ts"];
   const libLoader = loadLibrary(adaptor, defaultLib);
@@ -31,7 +31,7 @@ export function getlanguageServiceHost(
     allowJs: true,
     checkJs: true,
     target: ts.ScriptTarget.Latest,
-    lib: [...defaultLib, adaptor.full],
+    lib: [...defaultLib, ...adaptor.map((a) => a.full)],
     moduleResolution: ts.ModuleResolutionKind.Classic,
     experimentalDecorators: false,
   };
@@ -77,14 +77,14 @@ export function getlanguageServiceHost(
   };
   return {
     host: ts.createLanguageService(host),
-    adaptorPath: libLoader.adaptorPath,
+    adaptorPaths: libLoader.adaptorPaths,
   };
 }
 
 export async function tsHoverHelp(
   document: TextDocument,
   position: Position,
-  adaptor: Adaptor
+  adaptor: Adaptor[]
 ): Promise<Hover | null> {
   const jsLanguageService = await getlanguageServiceHost(document, adaptor);
   const info = jsLanguageService.host.getQuickInfoAtPosition(
@@ -103,7 +103,7 @@ export async function tsHoverHelp(
 export async function tsCompleteHelp(
   document: TextDocument,
   position: Position,
-  adaptor: Adaptor
+  adaptor: Adaptor[]
 ): Promise<CompletionItem[]> {
   const jsLanguageService = await getlanguageServiceHost(document, adaptor);
   const offset = document.offsetAt(position);
@@ -126,7 +126,7 @@ export async function tsCompleteHelp(
 export async function tsSignatureHelp(
   document: TextDocument,
   position: Position,
-  adaptor: Adaptor
+  adaptor: Adaptor[]
 ): Promise<SignatureHelp | null> {
   const jsLanguageService = await getlanguageServiceHost(document, adaptor);
   const signHelp = jsLanguageService.host.getSignatureHelpItems(
@@ -172,7 +172,7 @@ export async function tsSignatureHelp(
 
 export async function tsSyntacticDiagnostics(
   document: TextDocument,
-  adaptor: Adaptor
+  adaptor: Adaptor[]
 ): Promise<Diagnostic[]> {
   // updateHostSettings(settings);
 
@@ -198,7 +198,7 @@ export async function tsSyntacticDiagnostics(
 export async function tsFindDefinition(
   document: TextDocument,
   position: Position,
-  adaptor: Adaptor
+  adaptor: Adaptor[]
 ): Promise<Definition | null> {
   const jsLanguageService = await getlanguageServiceHost(document, adaptor);
   const definition = jsLanguageService.host.getDefinitionAtPosition(
@@ -214,7 +214,7 @@ export async function tsFindDefinition(
           ...d,
           fileName: !isAdaptorType
             ? document.uri.fsPath
-            : join(jsLanguageService.adaptorPath, d.fileName),
+            : join(jsLanguageService.adaptorPaths[0], d.fileName), // fix to search all adaptors
           isAdaptorType,
         };
       })

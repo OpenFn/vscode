@@ -10,7 +10,6 @@ import { TreeviewItem, TreeViewProvider } from "./TreeViewProvider";
 import { debounce } from "./utils/debounce";
 import { execute } from "./utils/execute";
 import { isAvailableWithInstall } from "./workflowRunner";
-import { adaptorHelper } from "./utils/adaptorHelper";
 
 interface PickItem extends vscode.QuickPickItem {
   workflowPath: string;
@@ -67,7 +66,7 @@ export class OpenFnExtension implements vscode.Disposable {
           });
 
         // show adaptor version in status bar
-        this.statusBarManager.setStatusAdaptor(activeFile.adaptor.full);
+        this.statusBarManager.setStatusAdaptor(activeFile.adaptor);
 
         // deal with completion stuff
         if (activeFile.isJob) {
@@ -93,7 +92,7 @@ export class OpenFnExtension implements vscode.Disposable {
       // collect adaptors and install them
       const adaptors = files
         .map((file) => file.steps.map((s) => s.adaptor))
-        .flat()
+        .flat(2)
         .map((adaptor) => `-a ${adaptor.full}`);
 
       // brute install these adaptors!
