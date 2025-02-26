@@ -11,10 +11,10 @@ const rootFolder =
 // narrowing to the installed typescript there
 const TYPESCRIPT_LIB_SOURCE = join(rootFolder, "node_modules/typescript/lib");
 
-export function loadLibrary(adaptor: Adaptor[], libs: string[]) {
-  const adaptornames = adaptor.map((a) => a.full);
+export function loadLibrary(adaptors: Adaptor[], libs: string[]) {
+  const adaptornames = adaptors.map((a) => a.full);
   // path used here isn't fixed and has to be figured out
-  const adaptorPaths = adaptor.map(
+  const adaptorPaths = adaptors.map(
     (a) => `/tmp/openfn/repo/node_modules/@openfn/language-${a.refined}/types`
   );
   const globalExports: Record<string, boolean> = {};

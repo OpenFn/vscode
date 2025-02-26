@@ -40,7 +40,7 @@ export class TreeViewProvider implements vscode.TreeDataProvider<TreeviewItem> {
             path.join(path.dirname(element.filePath), step.expression),
             vscode.TreeItemCollapsibleState.None,
             [], // no steps
-            step.adaptor.map((a) => a.full).join(" + ")
+            step.adaptors.map((a) => a.full).join(" + ")
           )
       );
     }

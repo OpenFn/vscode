@@ -22,16 +22,16 @@ import { Adaptor } from "../utils/adaptorHelper";
 
 export function getlanguageServiceHost(
   document: TextDocument,
-  adaptor: Adaptor[]
+  adaptors: Adaptor[]
 ) {
   const defaultLib = ["lib.es2020.d.ts"];
-  const libLoader = loadLibrary(adaptor, defaultLib);
+  const libLoader = loadLibrary(adaptors, defaultLib);
   const compilerOptions: ts.CompilerOptions = {
     allowNonTsExtensions: true,
     allowJs: true,
     checkJs: true,
     target: ts.ScriptTarget.Latest,
-    lib: [...defaultLib, ...adaptor.map((a) => a.full)],
+    lib: [...defaultLib, ...adaptors.map((a) => a.full)],
     moduleResolution: ts.ModuleResolutionKind.Classic,
     experimentalDecorators: false,
   };
@@ -84,9 +84,9 @@ export function getlanguageServiceHost(
 export async function tsHoverHelp(
   document: TextDocument,
   position: Position,
-  adaptor: Adaptor[]
+  adaptors: Adaptor[]
 ): Promise<Hover | null> {
-  const jsLanguageService = await getlanguageServiceHost(document, adaptor);
+  const jsLanguageService = await getlanguageServiceHost(document, adaptors);
   const info = jsLanguageService.host.getQuickInfoAtPosition(
     document.uri.fsPath,
     document.offsetAt(position)
@@ -103,9 +103,9 @@ export async function tsHoverHelp(
 export async function tsCompleteHelp(
   document: TextDocument,
   position: Position,
-  adaptor: Adaptor[]
+  adaptors: Adaptor[]
 ): Promise<CompletionItem[]> {
-  const jsLanguageService = await getlanguageServiceHost(document, adaptor);
+  const jsLanguageService = await getlanguageServiceHost(document, adaptors);
   const offset = document.offsetAt(position);
   const completions = jsLanguageService.host.getCompletionsAtPosition(
     document.uri.fsPath,
@@ -126,9 +126,9 @@ export async function tsCompleteHelp(
 export async function tsSignatureHelp(
   document: TextDocument,
   position: Position,
-  adaptor: Adaptor[]
+  adaptors: Adaptor[]
 ): Promise<SignatureHelp | null> {
-  const jsLanguageService = await getlanguageServiceHost(document, adaptor);
+  const jsLanguageService = await getlanguageServiceHost(document, adaptors);
   const signHelp = jsLanguageService.host.getSignatureHelpItems(
     document.uri.fsPath,
     document.offsetAt(position),
@@ -172,11 +172,11 @@ export async function tsSignatureHelp(
 
 export async function tsSyntacticDiagnostics(
   document: TextDocument,
-  adaptor: Adaptor[]
+  adaptors: Adaptor[]
 ): Promise<Diagnostic[]> {
   // updateHostSettings(settings);
 
-  const jsLanguageService = await getlanguageServiceHost(document, adaptor);
+  const jsLanguageService = await getlanguageServiceHost(document, adaptors);
   const syntaxDiagnostics: ts.Diagnostic[] =
     jsLanguageService.host.getSyntacticDiagnostics(document.uri.fsPath);
   const semanticDiagnostics = jsLanguageService.host.getSemanticDiagnostics(
@@ -198,9 +198,9 @@ export async function tsSyntacticDiagnostics(
 export async function tsFindDefinition(
   document: TextDocument,
   position: Position,
-  adaptor: Adaptor[]
+  adaptors: Adaptor[]
 ): Promise<Definition | null> {
-  const jsLanguageService = await getlanguageServiceHost(document, adaptor);
+  const jsLanguageService = await getlanguageServiceHost(document, adaptors);
   const definition = jsLanguageService.host.getDefinitionAtPosition(
     document.uri.fsPath,
     document.offsetAt(position)

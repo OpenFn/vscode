@@ -29,8 +29,8 @@ export class StatusBarManager implements vscode.Disposable {
     );
   }
 
-  setStatusAdaptor(adaptor: Adaptor[]) {
-    this.status.text = `${adaptor.map((a) => a.full).join(" + ")}`;
+  setStatusAdaptor(adaptors: Adaptor[]) {
+    this.status.text = `${adaptors.map((a) => a.full).join(" + ")}`;
     this.status.tooltip = "OpenFn Workspace detected";
   }
 

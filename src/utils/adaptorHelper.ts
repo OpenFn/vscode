@@ -26,6 +26,6 @@ async function resolveAdaptor(adaptor: string): Promise<Adaptor> {
   };
 }
 
-export async function adaptorHelper(adaptor: string[]): Promise<Adaptor[]> {
-  return await Promise.all(adaptor.map(resolveAdaptor));
+export async function adaptorHelper(adaptors: string[]): Promise<Adaptor[]> {
+  return await Promise.all(adaptors.map(resolveAdaptor));
 }
