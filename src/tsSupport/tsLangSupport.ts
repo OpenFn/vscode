@@ -18,10 +18,11 @@ import {
 import { loadLibrary } from "./jsLibs";
 import { convertKind } from "./kind";
 import { join } from "path";
+import { Adaptor } from "../utils/adaptorHelper";
 
 export function getlanguageServiceHost(
   document: TextDocument,
-  adaptor: string
+  adaptor: Adaptor
 ) {
   const defaultLib = ["lib.es2020.d.ts"];
   const libLoader = loadLibrary(adaptor, defaultLib);
@@ -30,7 +31,7 @@ export function getlanguageServiceHost(
     allowJs: true,
     checkJs: true,
     target: ts.ScriptTarget.Latest,
-    lib: [...defaultLib, adaptor],
+    lib: [...defaultLib, adaptor.full],
     moduleResolution: ts.ModuleResolutionKind.Classic,
     experimentalDecorators: false,
   };
@@ -83,7 +84,7 @@ export function getlanguageServiceHost(
 export async function tsHoverHelp(
   document: TextDocument,
   position: Position,
-  adaptor: string
+  adaptor: Adaptor
 ): Promise<Hover | null> {
   const jsLanguageService = await getlanguageServiceHost(document, adaptor);
   const info = jsLanguageService.host.getQuickInfoAtPosition(
@@ -102,7 +103,7 @@ export async function tsHoverHelp(
 export async function tsCompleteHelp(
   document: TextDocument,
   position: Position,
-  adaptor: string
+  adaptor: Adaptor
 ): Promise<CompletionItem[]> {
   const jsLanguageService = await getlanguageServiceHost(document, adaptor);
   const offset = document.offsetAt(position);
@@ -125,7 +126,7 @@ export async function tsCompleteHelp(
 export async function tsSignatureHelp(
   document: TextDocument,
   position: Position,
-  adaptor: string
+  adaptor: Adaptor
 ): Promise<SignatureHelp | null> {
   const jsLanguageService = await getlanguageServiceHost(document, adaptor);
   const signHelp = jsLanguageService.host.getSignatureHelpItems(
@@ -171,7 +172,7 @@ export async function tsSignatureHelp(
 
 export async function tsSyntacticDiagnostics(
   document: TextDocument,
-  adaptor: string
+  adaptor: Adaptor
 ): Promise<Diagnostic[]> {
   // updateHostSettings(settings);
 
@@ -197,7 +198,7 @@ export async function tsSyntacticDiagnostics(
 export async function tsFindDefinition(
   document: TextDocument,
   position: Position,
-  adaptor: string
+  adaptor: Adaptor
 ): Promise<Definition | null> {
   const jsLanguageService = await getlanguageServiceHost(document, adaptor);
   const definition = jsLanguageService.host.getDefinitionAtPosition(

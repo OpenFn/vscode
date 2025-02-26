@@ -1,3 +1,5 @@
+import { Adaptor } from "./utils/adaptorHelper";
+
 export type WorkflowJson = {
   workflow: {
     name?: string;
@@ -16,7 +18,7 @@ export type WorkflowData = {
   steps: Array<{
     id: string;
     name?: string;
-    adaptor: string;
+    adaptor: Adaptor;
     state: Record<string, any>;
     expression: string;
     filePath: string;

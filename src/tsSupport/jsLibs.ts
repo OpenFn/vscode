@@ -1,5 +1,6 @@
-import { existsSync, readFileSync } from "fs";
+import { readFileSync } from "fs";
 import { basename, dirname, join } from "path";
+import { Adaptor } from "../utils/adaptorHelper";
 
 // where is the main root we want to get typescript from?
 const rootFolder =
@@ -10,11 +11,9 @@ const rootFolder =
 // narrowing to the installed typescript there
 const TYPESCRIPT_LIB_SOURCE = join(rootFolder, "node_modules/typescript/lib");
 
-export function loadLibrary(adaptor: string, libs: string[]) {
-  const refinedAdaptor = adaptor.replace("@", "_");
-
+export function loadLibrary(adaptor: Adaptor, libs: string[]) {
   // path used here isn't fixed and has to be figured out
-  const adaptorPath = `/tmp/openfn/repo/node_modules/@openfn/language-${refinedAdaptor}/types`;
+  const adaptorPath = `/tmp/openfn/repo/node_modules/@openfn/language-${adaptor.refined}/types`;
   const globalExports: Record<string, boolean> = {};
   const namespaces: Record<string, string> = {};
   let activeSource: string = "";
@@ -23,10 +22,10 @@ export function loadLibrary(adaptor: string, libs: string[]) {
     load: function (name: string) {
       let isIndex = false;
       if (libs.includes(name)) activeSource = TYPESCRIPT_LIB_SOURCE;
-      else if (adaptor === name) activeSource = adaptorPath;
+      else if (adaptor.full === name) activeSource = adaptorPath;
       let libPath, content;
 
-      if (adaptor === name) {
+      if (adaptor.full === name) {
         libPath = activeSource + "/index.d.ts";
         isIndex = true;
       } else if (/^node_modules\//.test(name)) {

@@ -5,6 +5,7 @@ import {
   tsHoverHelp,
   tsSignatureHelp,
 } from "../tsSupport/tsLangSupport";
+import { Adaptor } from "../utils/adaptorHelper";
 
 export class CompletionManager implements vscode.Disposable {
   completion: vscode.Disposable | undefined;
@@ -13,7 +14,7 @@ export class CompletionManager implements vscode.Disposable {
   definition: vscode.Disposable | undefined;
   constructor() {}
 
-  async registerCompletions(adaptor: string) {
+  async registerCompletions(adaptor: Adaptor) {
     if (this.completion) this.completion.dispose();
     this.completion = vscode.languages.registerCompletionItemProvider(
       {
@@ -29,7 +30,7 @@ export class CompletionManager implements vscode.Disposable {
     );
   }
 
-  async registerHoverSupport(adaptor: string) {
+  async registerHoverSupport(adaptor: Adaptor) {
     if (this.hover) this.hover.dispose();
     this.hover = vscode.languages.registerHoverProvider(
       {
@@ -44,7 +45,7 @@ export class CompletionManager implements vscode.Disposable {
     );
   }
 
-  async registerSignatureHelpProvider(adaptor: string) {
+  async registerSignatureHelpProvider(adaptor: Adaptor) {
     if (this.signature) this.signature.dispose();
     this.signature = vscode.languages.registerSignatureHelpProvider(
       {
@@ -63,7 +64,7 @@ export class CompletionManager implements vscode.Disposable {
     );
   }
 
-  async registerDefinitionHelp(adaptor: string) {
+  async registerDefinitionHelp(adaptor: Adaptor) {
     if (this.definition) this.definition.dispose();
     this.definition = vscode.languages.registerDefinitionProvider(
       {
