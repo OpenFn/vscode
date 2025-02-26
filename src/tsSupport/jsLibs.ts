@@ -12,24 +12,24 @@ const rootFolder =
 const TYPESCRIPT_LIB_SOURCE = join(rootFolder, "node_modules/typescript/lib");
 
 export function loadLibrary(adaptors: Adaptor[], libs: string[]) {
-  const adaptornames = adaptors.map((a) => a.full);
-  // path used here isn't fixed and has to be figured out
-  const adaptorPaths = adaptors.map(
-    (a) => `/tmp/openfn/repo/node_modules/@openfn/language-${a.refined}/types`
-  );
+  const namePaths: Record<string, string> = {};
+  for (const a of adaptors)
+    namePaths[
+      a.full
+    ] = `/tmp/openfn/repo/node_modules/@openfn/language-${a.refined}/types`;
+
   const globalExports: Record<string, boolean> = {};
   const namespaces: Record<string, string> = {};
   let activeSource: string = "";
   return {
-    adaptorPaths,
+    adaptorPaths: Object.values(namePaths),
     load: function (name: string) {
       let isIndex = false;
       if (libs.includes(name)) activeSource = TYPESCRIPT_LIB_SOURCE;
-      else if (adaptornames.includes(name))
-        activeSource = adaptorPaths[adaptornames.indexOf(name)];
+      else if (namePaths[name]) activeSource = namePaths[name];
       let libPath, content;
 
-      if (adaptornames.includes(name)) {
+      if (namePaths[name]) {
         libPath = activeSource + "/index.d.ts";
         isIndex = true;
       } else if (/^node_modules\//.test(name)) {
