@@ -90,7 +90,7 @@ export class OpenFnExtension implements vscode.Disposable {
       const adaptors = files
         .map((file) => file.steps.map((s) => s.adaptor))
         .flat()
-        .map((adaptor) => `-a ${adaptor}`);
+        .map((adaptor) => `-a ${adaptor.full}`);
 
       // brute install these adaptors!
       await execute(`openfn repo install ${adaptors.join(" ")}`);
