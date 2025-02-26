@@ -52,6 +52,10 @@ export class OpenFnExtension implements vscode.Disposable {
 
         // deal with completion stuff
         if (activeFile.isJob) {
+          this.workflowManager.api.languages.setTextDocumentLanguage(
+            activeFile.document,
+            "fn"
+          ); // register active file as fn file
           this.completionManager.registerCompletions(activeFile.adaptor);
           this.completionManager.registerHoverSupport(activeFile.adaptor);
           this.completionManager.registerSignatureHelpProvider(
