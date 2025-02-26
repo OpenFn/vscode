@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 import { tsSyntacticDiagnostics } from "../tsSupport/tsLangSupport";
-import { Adaptor } from "../utils/adaptorHelper";
+import { FnLangHost } from "../types";
 
 // deals with only the current open fn source code
 export class SourceManager implements vscode.Disposable {
@@ -14,9 +14,9 @@ export class SourceManager implements vscode.Disposable {
   async updateSource(
     document: vscode.TextDocument,
     uri: vscode.Uri,
-    adaptors: Adaptor[]
+    fnHost: FnLangHost
   ) {
-    const syntaxE = await tsSyntacticDiagnostics(document, adaptors);
+    const syntaxE = await tsSyntacticDiagnostics(document, fnHost);
     this.diagCollection.set(uri, syntaxE);
   }
 

@@ -1,3 +1,4 @@
+import type { LanguageService } from "typescript";
 import { Adaptor } from "./utils/adaptorHelper";
 
 export type WorkflowJson = {
@@ -26,3 +27,8 @@ export type WorkflowData = {
   }>;
   filePath: string; // also serves as an ID
 };
+
+export interface FnLangHost {
+  service: LanguageService;
+  adaptorPaths: string[];
+}
