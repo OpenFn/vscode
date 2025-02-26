@@ -10,6 +10,8 @@ import { TreeviewItem, TreeViewProvider } from "./TreeViewProvider";
 import { debounce } from "./utils/debounce";
 import { execute } from "./utils/execute";
 import { isAvailableWithInstall } from "./workflowRunner";
+import { getlanguageServiceHost } from "./tsSupport/tsLangSupport";
+import { FnLangHost } from "./types";
 
 interface PickItem extends vscode.QuickPickItem {
   workflowPath: string;
@@ -20,6 +22,7 @@ export class OpenFnExtension implements vscode.Disposable {
   isOpenfnWorkspace: boolean = false;
   semanticDisposable: vscode.Disposable;
   contentChange: vscode.Disposable | undefined;
+  fnHost: FnLangHost | undefined;
   constructor(
     private workflowManager: WorkflowManager,
     private treeviewProvider: TreeViewProvider,
@@ -44,16 +47,30 @@ export class OpenFnExtension implements vscode.Disposable {
 
     workflowManager.onActiveFileChange(async (activeFile) => {
       if (this.contentChange) this.contentChange.dispose();
+      if (this.fnHost) this.fnHost.service.dispose();
       if (
         activeFile.adaptors &&
         activeFile.adaptors.length &&
+        activeFile.isJob &&
         this.isOpenfnWorkspace
       ) {
+        // init cool stuff
+        // register doc as fn language
+        this.workflowManager.api.languages.setTextDocumentLanguage(
+          activeFile.document,
+          "fn"
+        );
+        // setup lang host for the active job file
+        this.fnHost = await getlanguageServiceHost(
+          activeFile.document,
+          activeFile.adaptors
+        );
+
         // first call source manager on content before waiting for updates
         this.sourceManager.updateSource(
           activeFile.document,
           activeFile.document.uri,
-          activeFile.adaptors
+          this.fnHost
         );
         const debouncedSourceUpdate = debounce(
           this.sourceManager.updateSource.bind(this.sourceManager),
@@ -61,30 +78,17 @@ export class OpenFnExtension implements vscode.Disposable {
         );
         this.contentChange =
           this.workflowManager.api.workspace.onDidChangeTextDocument((ev) => {
-            if (activeFile.adaptors)
-              debouncedSourceUpdate(
-                ev.document,
-                ev.document.uri,
-                activeFile.adaptors
-              );
+            if (activeFile.adaptors && this.fnHost)
+              debouncedSourceUpdate(ev.document, ev.document.uri, this.fnHost);
           });
 
         // show adaptor version in status bar
         this.statusBarManager.setStatusAdaptor(activeFile.adaptors);
 
-        // deal with completion stuff
-        if (activeFile.isJob) {
-          this.workflowManager.api.languages.setTextDocumentLanguage(
-            activeFile.document,
-            "fn"
-          ); // register active file as fn file
-          this.completionManager.registerCompletions(activeFile.adaptors);
-          this.completionManager.registerHoverSupport(activeFile.adaptors);
-          this.completionManager.registerSignatureHelpProvider(
-            activeFile.adaptors
-          );
-          this.completionManager.registerDefinitionHelp(activeFile.adaptors);
-        }
+        this.completionManager.registerCompletions(this.fnHost);
+        this.completionManager.registerHoverSupport(this.fnHost);
+        this.completionManager.registerSignatureHelpProvider(this.fnHost);
+        this.completionManager.registerDefinitionHelp(this.fnHost);
       } else {
         if (this.isOpenfnWorkspace) this.statusBarManager.setStatusActive();
         else this.statusBarManager.setStatusInactive();
@@ -100,7 +104,10 @@ export class OpenFnExtension implements vscode.Disposable {
         .map((adaptor) => `-a ${adaptor.full}`);
 
       // brute install these adaptors!
-      await execute(`openfn repo install ${adaptors.join(" ")}`);
+      this.statusBarManager.showOverrideText("installing adaptors...");
+      await execute(`openfn repo install ${adaptors.join(" ")}`).finally(() => {
+        this.statusBarManager.endOverrideText();
+      });
     });
 
     this.workflowManager.api.commands.registerCommand(
@@ -176,6 +183,7 @@ export class OpenFnExtension implements vscode.Disposable {
     if (this.semanticDisposable) this.semanticDisposable.dispose();
     if (this.completionManager) this.completionManager.dispose();
     if (this.contentChange) this.contentChange.dispose();
+    if (this.fnHost) this.fnHost.service.dispose();
   }
 
   private initTreeview() {

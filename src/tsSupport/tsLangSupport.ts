@@ -1,3 +1,4 @@
+import { join } from "path";
 import * as ts from "typescript";
 import {
   CompletionItem,
@@ -15,16 +16,16 @@ import {
   TextDocument,
   Uri,
 } from "vscode";
+import { FnLangHost } from "../types";
+import { Adaptor } from "../utils/adaptorHelper";
 import { loadLibrary } from "./jsLibs";
 import { convertKind } from "./kind";
-import { join } from "path";
-import { Adaptor } from "../utils/adaptorHelper";
 
 export function getlanguageServiceHost(
   document: TextDocument,
   adaptors: Adaptor[]
 ) {
-  const defaultLib = ["lib.es2020.d.ts"];
+  const defaultLib = ["lib.es2020.d.ts", "openfn.lib"];
   const libLoader = loadLibrary(adaptors, defaultLib);
   const compilerOptions: ts.CompilerOptions = {
     allowNonTsExtensions: true,
@@ -76,7 +77,7 @@ export function getlanguageServiceHost(
     },
   };
   return {
-    host: ts.createLanguageService(host),
+    service: ts.createLanguageService(host),
     adaptorPaths: libLoader.adaptorPaths,
   };
 }
@@ -84,10 +85,9 @@ export function getlanguageServiceHost(
 export async function tsHoverHelp(
   document: TextDocument,
   position: Position,
-  adaptors: Adaptor[]
+  fnHost: FnLangHost
 ): Promise<Hover | null> {
-  const jsLanguageService = await getlanguageServiceHost(document, adaptors);
-  const info = jsLanguageService.host.getQuickInfoAtPosition(
+  const info = fnHost.service.getQuickInfoAtPosition(
     document.uri.fsPath,
     document.offsetAt(position)
   );
@@ -103,11 +103,10 @@ export async function tsHoverHelp(
 export async function tsCompleteHelp(
   document: TextDocument,
   position: Position,
-  adaptors: Adaptor[]
+  fnHost: FnLangHost
 ): Promise<CompletionItem[]> {
-  const jsLanguageService = await getlanguageServiceHost(document, adaptors);
   const offset = document.offsetAt(position);
-  const completions = jsLanguageService.host.getCompletionsAtPosition(
+  const completions = fnHost.service.getCompletionsAtPosition(
     document.uri.fsPath,
     offset,
     { includeExternalModuleExports: false, includeInsertTextCompletions: false }
@@ -126,10 +125,9 @@ export async function tsCompleteHelp(
 export async function tsSignatureHelp(
   document: TextDocument,
   position: Position,
-  adaptors: Adaptor[]
+  fnHost: FnLangHost
 ): Promise<SignatureHelp | null> {
-  const jsLanguageService = await getlanguageServiceHost(document, adaptors);
-  const signHelp = jsLanguageService.host.getSignatureHelpItems(
+  const signHelp = fnHost.service.getSignatureHelpItems(
     document.uri.fsPath,
     document.offsetAt(position),
     undefined
@@ -172,14 +170,13 @@ export async function tsSignatureHelp(
 
 export async function tsSyntacticDiagnostics(
   document: TextDocument,
-  adaptors: Adaptor[]
+  fnHost: FnLangHost
 ): Promise<Diagnostic[]> {
   // updateHostSettings(settings);
 
-  const jsLanguageService = await getlanguageServiceHost(document, adaptors);
   const syntaxDiagnostics: ts.Diagnostic[] =
-    jsLanguageService.host.getSyntacticDiagnostics(document.uri.fsPath);
-  const semanticDiagnostics = jsLanguageService.host.getSemanticDiagnostics(
+    fnHost.service.getSyntacticDiagnostics(document.uri.fsPath);
+  const semanticDiagnostics = fnHost.service.getSemanticDiagnostics(
     document.uri.fsPath
   );
   return syntaxDiagnostics
@@ -198,10 +195,9 @@ export async function tsSyntacticDiagnostics(
 export async function tsFindDefinition(
   document: TextDocument,
   position: Position,
-  adaptors: Adaptor[]
+  fnHost: FnLangHost
 ): Promise<Definition | null> {
-  const jsLanguageService = await getlanguageServiceHost(document, adaptors);
-  const definition = jsLanguageService.host.getDefinitionAtPosition(
+  const definition = fnHost.service.getDefinitionAtPosition(
     document.uri.fsPath,
     document.offsetAt(position)
   );
@@ -214,7 +210,7 @@ export async function tsFindDefinition(
           ...d,
           fileName: !isAdaptorType
             ? document.uri.fsPath
-            : join(jsLanguageService.adaptorPaths[0], d.fileName), // fix to search all adaptors
+            : join(fnHost.adaptorPaths[0], d.fileName), // fix to search all adaptors
           isAdaptorType,
         };
       })

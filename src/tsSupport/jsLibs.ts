@@ -1,6 +1,9 @@
 import { readFileSync } from "fs";
 import { basename, dirname, join } from "path";
 import { Adaptor } from "../utils/adaptorHelper";
+import openfnLib from "./lib/openfn.lib";
+
+const OPENFN_LIB_NAME = "openfn.lib";
 
 // where is the main root we want to get typescript from?
 const rootFolder =
@@ -12,24 +15,25 @@ const rootFolder =
 const TYPESCRIPT_LIB_SOURCE = join(rootFolder, "node_modules/typescript/lib");
 
 export function loadLibrary(adaptors: Adaptor[], libs: string[]) {
-  const adaptornames = adaptors.map((a) => a.full);
-  // path used here isn't fixed and has to be figured out
-  const adaptorPaths = adaptors.map(
-    (a) => `/tmp/openfn/repo/node_modules/@openfn/language-${a.refined}/types`
-  );
+  const namePaths: Record<string, string> = {};
+  for (const a of adaptors)
+    namePaths[
+      a.full
+    ] = `/tmp/openfn/repo/node_modules/@openfn/language-${a.refined}/types`;
+
   const globalExports: Record<string, boolean> = {};
   const namespaces: Record<string, string> = {};
   let activeSource: string = "";
   return {
-    adaptorPaths,
+    adaptorPaths: Object.values(namePaths),
     load: function (name: string) {
+      if (name === OPENFN_LIB_NAME) return openfnLib; // support for custom types defined at the bottom
       let isIndex = false;
       if (libs.includes(name)) activeSource = TYPESCRIPT_LIB_SOURCE;
-      else if (adaptornames.includes(name))
-        activeSource = adaptorPaths[adaptornames.indexOf(name)];
+      else if (namePaths[name]) activeSource = namePaths[name];
       let libPath, content;
 
-      if (adaptornames.includes(name)) {
+      if (namePaths[name]) {
         libPath = activeSource + "/index.d.ts";
         isIndex = true;
       } else if (/^node_modules\//.test(name)) {

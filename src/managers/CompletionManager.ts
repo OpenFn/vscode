@@ -5,7 +5,7 @@ import {
   tsHoverHelp,
   tsSignatureHelp,
 } from "../tsSupport/tsLangSupport";
-import { Adaptor } from "../utils/adaptorHelper";
+import { FnLangHost } from "../types";
 
 export class CompletionManager implements vscode.Disposable {
   completion: vscode.Disposable | undefined;
@@ -14,7 +14,7 @@ export class CompletionManager implements vscode.Disposable {
   definition: vscode.Disposable | undefined;
   constructor() {}
 
-  async registerCompletions(adaptors: Adaptor[]) {
+  async registerCompletions(fnHost: FnLangHost) {
     if (this.completion) this.completion.dispose();
     this.completion = vscode.languages.registerCompletionItemProvider(
       {
@@ -23,14 +23,14 @@ export class CompletionManager implements vscode.Disposable {
       },
       {
         provideCompletionItems(document, position, token, context) {
-          return tsCompleteHelp(document, position, adaptors);
+          return tsCompleteHelp(document, position, fnHost);
         },
       },
       "."
     );
   }
 
-  async registerHoverSupport(adaptors: Adaptor[]) {
+  async registerHoverSupport(fnHost: FnLangHost) {
     if (this.hover) this.hover.dispose();
     this.hover = vscode.languages.registerHoverProvider(
       {
@@ -39,13 +39,13 @@ export class CompletionManager implements vscode.Disposable {
       },
       {
         provideHover(document, position, token) {
-          return tsHoverHelp(document, position, adaptors);
+          return tsHoverHelp(document, position, fnHost);
         },
       }
     );
   }
 
-  async registerSignatureHelpProvider(adaptors: Adaptor[]) {
+  async registerSignatureHelpProvider(fnHost: FnLangHost) {
     if (this.signature) this.signature.dispose();
     this.signature = vscode.languages.registerSignatureHelpProvider(
       {
@@ -54,7 +54,7 @@ export class CompletionManager implements vscode.Disposable {
       },
       {
         provideSignatureHelp(document, position, token, context) {
-          return tsSignatureHelp(document, position, adaptors);
+          return tsSignatureHelp(document, position, fnHost);
         },
       },
       {
@@ -64,7 +64,7 @@ export class CompletionManager implements vscode.Disposable {
     );
   }
 
-  async registerDefinitionHelp(adaptors: Adaptor[]) {
+  async registerDefinitionHelp(fnHost: FnLangHost) {
     if (this.definition) this.definition.dispose();
     this.definition = vscode.languages.registerDefinitionProvider(
       {
@@ -73,7 +73,7 @@ export class CompletionManager implements vscode.Disposable {
       },
       {
         provideDefinition(document, position, token) {
-          return tsFindDefinition(document, position, adaptors);
+          return tsFindDefinition(document, position, fnHost);
         },
       }
     );
