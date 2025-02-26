@@ -5,11 +5,12 @@ import parseJson from "../utils/parseJson";
 import { OpenfnRcManager } from "./OpenfnRcManager";
 import { runWorkflowHelper } from "../workflowRunner";
 import { existsSync } from "fs";
+import { Adaptor, adaptorHelper } from "../utils/adaptorHelper";
 
 interface ActiveFileMeta {
   isJob: boolean;
   document: vscode.TextDocument;
-  adaptor: string | undefined;
+  adaptor: Adaptor | undefined;
 }
 
 const RECENT_INPUTS_KEY = "recent_inputs";
@@ -141,10 +142,13 @@ export class WorkflowManager implements vscode.Disposable {
       const workflow: WorkflowData = {
         filePath: w.filePath,
         name: w.result.workflow.name,
-        steps: w.result.workflow.steps.map((step) => ({
-          ...step,
-          filePath: path.join(path.dirname(w.filePath), step.expression),
-        })),
+        steps: await Promise.all(
+          w.result.workflow.steps.map(async (step) => ({
+            ...step,
+            adaptor: await adaptorHelper(step.adaptor),
+            filePath: path.join(path.dirname(w.filePath), step.expression),
+          }))
+        ),
       };
       // TODO find job paths that don't exist and mention them
       workflows.push(workflow);

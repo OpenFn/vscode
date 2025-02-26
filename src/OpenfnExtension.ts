@@ -10,8 +10,7 @@ import { TreeviewItem, TreeViewProvider } from "./TreeViewProvider";
 import { debounce } from "./utils/debounce";
 import { execute } from "./utils/execute";
 import { isAvailableWithInstall } from "./workflowRunner";
-
-const supportedExtension = [".fn", ".js", ".ofn", ".openfn"];
+import { adaptorHelper } from "./utils/adaptorHelper";
 
 interface PickItem extends vscode.QuickPickItem {
   workflowPath: string;
@@ -44,11 +43,31 @@ export class OpenFnExtension implements vscode.Disposable {
       }
     });
 
-    workflowManager.onActiveFileChange((activeFile) => {
+    workflowManager.onActiveFileChange(async (activeFile) => {
       if (this.contentChange) this.contentChange.dispose();
       if (activeFile.adaptor && this.isOpenfnWorkspace) {
+        // first call source manager on content before waiting for updates
+        this.sourceManager.updateSource(
+          activeFile.document,
+          activeFile.document.uri,
+          activeFile.adaptor
+        );
+        const debouncedSourceUpdate = debounce(
+          this.sourceManager.updateSource.bind(this.sourceManager),
+          1000 // 1 second debounce. generally people type quite slow :(
+        );
+        this.contentChange =
+          this.workflowManager.api.workspace.onDidChangeTextDocument((ev) => {
+            if (activeFile.adaptor)
+              debouncedSourceUpdate(
+                ev.document,
+                ev.document.uri,
+                activeFile.adaptor
+              );
+          });
+
         // show adaptor version in status bar
-        this.statusBarManager.setStatusAdaptor(activeFile.adaptor);
+        this.statusBarManager.setStatusAdaptor(activeFile.adaptor.full);
 
         // deal with completion stuff
         if (activeFile.isJob) {
@@ -63,35 +82,6 @@ export class OpenFnExtension implements vscode.Disposable {
         if (this.isOpenfnWorkspace) this.statusBarManager.setStatusActive();
         else this.statusBarManager.setStatusInactive();
       }
-
-      // only register for content updates when we're in a supported file!
-      if (
-        !supportedExtension.includes(
-          path.extname(activeFile.document.uri.fsPath)
-        )
-      )
-        return;
-
-      // first call source manager on content before waiting for updates
-      if (!activeFile.adaptor) return;
-      this.sourceManager.updateSource(
-        activeFile.document,
-        activeFile.document.uri,
-        activeFile.adaptor
-      );
-      const debouncedSourceUpdate = debounce(
-        this.sourceManager.updateSource.bind(this.sourceManager),
-        1000 // 1 second debounce. generally people type quite slow :(
-      );
-      this.contentChange =
-        this.workflowManager.api.workspace.onDidChangeTextDocument((ev) => {
-          if (activeFile.adaptor)
-            debouncedSourceUpdate(
-              ev.document,
-              ev.document.uri,
-              activeFile.adaptor
-            );
-        });
     });
 
     this.workflowManager.onWorkflowChange(async (files) => {

@@ -1,5 +1,6 @@
 import * as vscode from "vscode";
 import { tsSyntacticDiagnostics } from "../tsSupport/tsLangSupport";
+import { Adaptor } from "../utils/adaptorHelper";
 
 // deals with only the current open fn source code
 export class SourceManager implements vscode.Disposable {
@@ -13,7 +14,7 @@ export class SourceManager implements vscode.Disposable {
   async updateSource(
     document: vscode.TextDocument,
     uri: vscode.Uri,
-    adaptor: string
+    adaptor: Adaptor
   ) {
     const syntaxE = await tsSyntacticDiagnostics(document, adaptor);
     this.diagCollection.set(uri, syntaxE);
