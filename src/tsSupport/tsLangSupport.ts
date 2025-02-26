@@ -25,7 +25,7 @@ export function getlanguageServiceHost(
   document: TextDocument,
   adaptors: Adaptor[]
 ) {
-  const defaultLib = ["lib.es2020.d.ts"];
+  const defaultLib = ["lib.es2020.d.ts", "openfn.lib"];
   const libLoader = loadLibrary(adaptors, defaultLib);
   const compilerOptions: ts.CompilerOptions = {
     allowNonTsExtensions: true,

@@ -1,6 +1,9 @@
 import { readFileSync } from "fs";
 import { basename, dirname, join } from "path";
 import { Adaptor } from "../utils/adaptorHelper";
+import openfnLib from "./lib/openfn.lib";
+
+const OPENFN_LIB_NAME = "openfn.lib";
 
 // where is the main root we want to get typescript from?
 const rootFolder =
@@ -24,6 +27,7 @@ export function loadLibrary(adaptors: Adaptor[], libs: string[]) {
   return {
     adaptorPaths: Object.values(namePaths),
     load: function (name: string) {
+      if (name === OPENFN_LIB_NAME) return openfnLib; // support for custom types defined at the bottom
       let isIndex = false;
       if (libs.includes(name)) activeSource = TYPESCRIPT_LIB_SOURCE;
       else if (namePaths[name]) activeSource = namePaths[name];
