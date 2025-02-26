@@ -3,7 +3,7 @@ import * as vscode from "vscode";
 const HIGHLIGHT_KEYWORDS = ["state", "$"] as const;
 const rETable: Record<(typeof HIGHLIGHT_KEYWORDS)[any], RegExp> = {
   $: /\$\.+/g,
-  state: /((state)\.)|((state)\s*\=\s*>)/g,
+  state: /((state)\.)|((state)\s*\=\s*>)|(return\s+(state))/g,
 };
 
 export default function registerSemanticColoring(api: typeof vscode) {
@@ -23,6 +23,8 @@ export default function registerSemanticColoring(api: typeof vscode) {
           let match = line.matchAll(rETable[KEYWORD]);
           if (match) {
             for (const m of match) {
+              if (m[0] && m[0].includes("return"))
+                m.index += m[0].indexOf("state");
               tokensBuilder.push(
                 new api.Range(
                   new api.Position(ln, m.index),
