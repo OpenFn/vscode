@@ -3,12 +3,13 @@ import * as vscode from "vscode";
 const HIGHLIGHT_KEYWORDS = ["state", "$"] as const;
 const rETable: Record<(typeof HIGHLIGHT_KEYWORDS)[any], RegExp> = {
   $: /\$\.+/g,
-  state: /((state)\.)|((state)\s*\=\s*>)|(return\s+(state))/g,
+  state:
+    /((state)\.)|((state)\s*\=\s*>)|(\(\s*(state)\s*\)\s*\=\s*>)|(return\s+(state))/g,
 };
 
 export default function registerSemanticColoring(api: typeof vscode) {
-  const tokenTypes = ["openfn"];
-  const tokenModifiers = ["state"];
+  const tokenTypes = ["keyword"];
+  const tokenModifiers = ["control"];
   const legend = new api.SemanticTokensLegend(tokenTypes, tokenModifiers);
 
   const provider: vscode.DocumentSemanticTokensProvider = {
@@ -23,15 +24,14 @@ export default function registerSemanticColoring(api: typeof vscode) {
           let match = line.matchAll(rETable[KEYWORD]);
           if (match) {
             for (const m of match) {
-              if (m[0] && m[0].includes("return"))
-                m.index += m[0].indexOf("state");
+              if (m[0]) m.index += m[0].indexOf(KEYWORD);
               tokensBuilder.push(
                 new api.Range(
                   new api.Position(ln, m.index),
                   new api.Position(ln, m.index + KEYWORD.length)
                 ),
-                "openfn",
-                ["state"]
+                "keyword",
+                ["control"]
               );
             }
           }
