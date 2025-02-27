@@ -166,7 +166,9 @@ export class OpenFnExtension implements vscode.Disposable {
         workflowManager.runWorkflow({
           path: item.filePath,
           name: item.label,
-          adaptor: item.adaptor,
+          isStep: !!item.adaptors,
+          adaptors: item.adaptors,
+          state: item.state,
         });
       }
     );

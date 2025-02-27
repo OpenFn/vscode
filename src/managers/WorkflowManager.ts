@@ -4,8 +4,9 @@ import { WorkflowData, WorkflowJson } from "../types";
 import parseJson from "../utils/parseJson";
 import { OpenfnRcManager } from "./OpenfnRcManager";
 import { runWorkflowHelper } from "../workflowRunner";
-import { existsSync } from "fs";
+import { existsSync, mkdirSync, writeFileSync } from "fs";
 import { Adaptor, adaptorHelper } from "../utils/adaptorHelper";
+import cleanupFilename from "../utils/cleanupFilename";
 
 interface ActiveFileMeta {
   isJob: boolean;
@@ -182,7 +183,9 @@ export class WorkflowManager implements vscode.Disposable {
   async runWorkflow(workflowInfo: {
     path: string;
     name?: string;
-    adaptor?: string;
+    isStep?: boolean;
+    state?: Record<string, any>;
+    adaptors?: string[];
   }) {
     // show input options & then recent input too
     const recentInput = this.getWorkflowRecentInput(workflowInfo.path);
@@ -196,18 +199,31 @@ export class WorkflowManager implements vscode.Disposable {
             },
           ]
         : []
-    ).concat([
-      {
-        label: "No input",
-        detail: "run workflow without an input. default {}",
-        id: "none",
-      },
-      {
-        label: "Select File...",
-        detail: "select a file from your machine as input source",
-        id: "select",
-      },
-    ]);
+    )
+      .concat(
+        workflowInfo.isStep
+          ? [
+              {
+                label: "Step's state object",
+                detail:
+                  "use the state object defined in the workflow for this step.",
+                id: "state",
+              },
+            ]
+          : []
+      )
+      .concat([
+        {
+          label: "No input",
+          detail: "run without an input. default {}",
+          id: "none",
+        },
+        {
+          label: "Select File...",
+          detail: "select a file from your machine as input source",
+          id: "select",
+        },
+      ]);
     const result = await this.api.window.showQuickPick<InputPickItem>(sources, {
       title: "Select input source",
       canPickMany: false,
@@ -225,6 +241,21 @@ export class WorkflowManager implements vscode.Disposable {
       });
       if (selectedUri?.length) inputPath = selectedUri[0].fsPath;
     } else if (result.id === "previous") inputPath = recentInput;
+    else if (result.id === "state") {
+      inputPath = path.join(
+        this.workspaceUri.fsPath,
+        `./tmp/input/${cleanupFilename(workflowInfo.name || "no-name")}-${
+          workflowInfo.name
+        }-input.json`
+      );
+
+      // create input file from state
+      mkdirSync(path.dirname(inputPath), { recursive: true });
+      writeFileSync(
+        inputPath,
+        JSON.stringify(workflowInfo.state || {}, undefined, 2)
+      );
+    }
 
     if (inputPath) this.updateWorkflowRecentInput(workflowInfo.path, inputPath);
     runWorkflowHelper(workflowInfo, this.workspaceUri, inputPath);
