@@ -40,7 +40,8 @@ export class TreeViewProvider implements vscode.TreeDataProvider<TreeviewItem> {
             path.join(path.dirname(element.filePath), step.expression),
             vscode.TreeItemCollapsibleState.None,
             [], // no steps
-            step.adaptors.map((a) => a.full).join(" + ")
+            step.adaptors.map((a) => a.full),
+            step.state
           )
       );
     }
@@ -48,18 +49,20 @@ export class TreeViewProvider implements vscode.TreeDataProvider<TreeviewItem> {
 }
 
 export class TreeviewItem extends vscode.TreeItem {
+  public readonly command: vscode.Command;
   constructor(
     public readonly label: string,
     public readonly filePath: string,
     public readonly collapsibleState: vscode.TreeItemCollapsibleState,
     public readonly steps: WorkflowData["steps"] = [],
-    public readonly adaptor: string | undefined = undefined,
-    public readonly command?: vscode.Command
+    public readonly adaptors: string[] | undefined = undefined,
+    public readonly state: Record<string, any> | undefined = undefined
   ) {
     super(label, collapsibleState);
     this.tooltip = this.label;
-    const adaptor_name = this.adaptor?.match(/^\w+/)?.[0];
-    if (!adaptor_name) {
+    const adaptor_name = this.adaptors?.join(" + ");
+    const first_adaptor = this.adaptors?.[0]?.match(/^\w+/)?.[0];
+    if (!first_adaptor && !adaptor_name) {
       this.iconPath = path.join(
         __filename,
         "..",
@@ -70,9 +73,9 @@ export class TreeviewItem extends vscode.TreeItem {
     } else {
       // is sub-item
       this.iconPath = vscode.Uri.parse(
-        `https://app.openfn.org/images/adaptors/${adaptor_name}-square.png`
+        `https://app.openfn.org/images/adaptors/${first_adaptor}-square.png`
       );
-      this.description = this.adaptor;
+      this.description = adaptor_name;
     }
     this.contextValue = "workflow.item";
     this.command = {
