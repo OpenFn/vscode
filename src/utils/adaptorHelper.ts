@@ -27,5 +27,9 @@ async function resolveAdaptor(adaptor: string): Promise<Adaptor> {
 }
 
 export async function adaptorHelper(adaptors: string[]): Promise<Adaptor[]> {
-  return await Promise.all(adaptors.map(resolveAdaptor));
+  // sorting adaptors to always put collections last!
+  const sortedAdaptors = adaptors.sort((a, b) =>
+    /collections/.test(a) ? 1 : -1
+  );
+  return await Promise.all(sortedAdaptors.map(resolveAdaptor));
 }
