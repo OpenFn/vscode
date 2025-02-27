@@ -107,8 +107,7 @@
       "editor.semanticHighlighting.enabled": true,
       "editor.semanticTokenColorCustomizations": {
         "rules": {
-          "openfn.state": {
-            "foreground": "#b80000",
+          "keyword.control": {
             "fontStyle": "bold"
           }
         }
