@@ -64,7 +64,7 @@
       },
       {
         "command": "openfn.workflow.item.run",
-        "title": "Execute this workflow",
+        "title": "Execute this workflow/step",
         "icon": "$(debug-start)"
       }
     ],
