@@ -244,9 +244,9 @@ export class WorkflowManager implements vscode.Disposable {
     else if (result.id === "state") {
       inputPath = path.join(
         this.workspaceUri.fsPath,
-        `./tmp/input/${cleanupFilename(workflowInfo.name || "no-name")}-${
-          workflowInfo.name
-        }-input.json`
+        `./tmp/input/${cleanupFilename(
+          workflowInfo.name || "unknown-workflow"
+        )}/${cleanupFilename(workflowInfo.name || "unknown-step")}-input.json`
       );
 
       // create input file from state

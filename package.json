@@ -2,7 +2,7 @@
   "name": "openfn-vscode",
   "displayName": "OpenFn",
   "description": "OpenFn language support for vscode",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "publisher": "openfn",
   "engines": {
     "vscode": "^1.75.0"
@@ -64,7 +64,7 @@
       },
       {
         "command": "openfn.workflow.item.run",
-        "title": "Execute this workflow",
+        "title": "Execute this workflow/step",
         "icon": "$(debug-start)"
       }
     ],

@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2025-02-28
+
+### Added
+
+- **lang-support:** Allowing multiple adaptors to be set for a single job file
+- **execution:** During step execution, allow input source from the state property in workflow.json
+
+### Changed
+- **syntax:** Update semantic coloring of the state & lazy-state keyword.
+
+### Fixed
+- **interface:** The OpenFn language takes over all .js files in a workspace
+- **lang-support:** Resolving adaptor versions when not explicitly defined
+
+
 ## [0.2.0] - 2025-02-18
 
 ### Added
