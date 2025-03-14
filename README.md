@@ -7,6 +7,14 @@ A visual studio code extension that provides basic support for writing and manag
 1. Install VSCode from [here](https://code.visualstudio.com/)
 2. Install the OpenFn extension by searching "OpenFn" in the marketplace.
 
+## Dependencies
+
+In order to run a workflow this extension depends on OpenFn CLI which can be installed with:
+
+`npm install -g @openfn/cli` 
+
+The workflow should be declared on a `workflow.json`. You can find an example of its JSON structure [here](https://docs.openfn.org/documentation/cli-usage#run-a-workflow).
+
 ## Highlighted Features
 
 - Errors and informations when changing code.
